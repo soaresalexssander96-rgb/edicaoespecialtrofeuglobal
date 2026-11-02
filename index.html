@@ -353,6 +353,21 @@
         .pmt-tabela { width: 100%; border-collapse: collapse; text-align: center; font-size: .95em; }
         .pmt-tabela th { background: #0b1224; color: var(--mut2); font-weight: 800; font-size: .78em; letter-spacing: 1px; text-transform: uppercase; padding: 13px 8px; position: sticky; top: 0; }
         .pmt-tabela td { padding: 11px 8px; border-top: 1px solid var(--line); font-weight: 800; }
+        .pmt-tabela td.pmt-meta-val { color: #dfe5f5; font-weight: 700; white-space: nowrap; }
+        @media (max-width: 600px) {
+            #cardDetalhePmt .pmt-tabela-wrap { overflow-x: auto; }
+            #cardDetalhePmt .pmt-tabela { font-size: .74em !important; }
+            #cardDetalhePmt .pmt-tabela th { font-size: .6em; letter-spacing: 0; padding: 10px 3px; line-height: 1.15; }
+            #cardDetalhePmt .pmt-tabela td { padding: 9px 3px; }
+            #cardDetalhePmt .pmt-tabela td:first-child { padding-left: 8px !important; }
+            #cardDetalhePmt .pmt-tabela td:first-child small { display: block; width: auto; margin: 0 0 1px; font-size: .85em; }
+            #cardDetalhePmt .pmt-tabela tr.pmt-hoje td:first-child::after { display: block; width: max-content; margin: 3px 0 0; }
+            #cardDetalhePmt .pmt-rs { display: none; }
+            #cardDetalhePmt .pmt-status { white-space: normal; padding: 3px 5px; font-size: .7em; line-height: 1.15; max-width: 66px; }
+            #cardDetalhePmt .pmt-tabela th:first-child { padding-left: 8px !important; }
+            #cardDetalhePmt .pmt-tabela tr.pmt-hoje td:first-child::after { font-size: .55em; padding: 1px 5px; }
+        }
+        .pmt-status .pmt-status-sub { display: block; margin-top: 1px; font-size: .82em; font-weight: 700; opacity: .8; }
         .pmt-tabela td:first-child { text-align: left; padding-left: 18px; color: #fff; white-space: nowrap; }
         .pmt-tabela td:first-child small { color: var(--mut); font-weight: 700; margin-right: 6px; display: inline-block; width: 34px; }
         .pmt-tabela tr.pmt-ok { background: rgba(52,245,160,.07); }
@@ -1195,7 +1210,7 @@
         <div id="tela-selecao-pmt" class="tela-selecao" style="display:block;">
             <div class="placeholder-compacto">
                 <strong>📅 PMT PREMIADA — <span id="pmt-mes-label"></span></strong><br>
-                Cada dia com <b>100% de Vendas</b> + <b>100% de Serviços</b> é uma PMT e vale <b>+3% de salário</b>.<br>🔒 O bônus só é liberado a partir da <b>10ª PMT entregue</b> no mês. Contam os <b>dias úteis e sábados</b> (domingos e feriados ficam fora). Selecione a filial.
+                Cada dia com <b>100% de Vendas</b> + <b>100% de Serviços</b> é uma PMT e vale <b>+3% de salário</b>.<br> O bônus só é liberado a partir da <b>10ª PMT entregue</b> no mês. Contam os <b>dias úteis e sábados</b> (domingos e feriados mínimo de 1,5% da Cota Mês Objetiva). Selecione a filial.
             </div>
             <div class="secao-lista-wrapper">
                 <input type="text" id="busca-pmt" class="busca-ranking" placeholder="🔍 Pesquisar filial ou cidade..." onkeyup="filtrarSelecao('pmt')">
@@ -2754,6 +2769,15 @@ function lerAbaPMT(linhas) {
         if (!l || l.length < 3) return;
         const nf = limparChave(l[0]); const d = pmtParseData(l[1]);
         if (!nf || !d) return;
+        if (l.length >= 6) {
+            // Formato novo (aba PMT exportada do Looker, enviada pelo Apps Script):
+            // [FILIAL, DIA, COTA 1P, % ATING VENDA 1P, COTA PULA 10, % ATING PULA 10]
+            const num = v => { const t = (v == null ? '' : v).toString().trim(); if (!t || /null|-/i.test(t) && !/\d/.test(t)) return null; return extrairNumero(t); };
+            let v = num(l[3]), sv = num(l[5]);
+            if (!v && !sv) { v = null; sv = null; }      // 0 e 0 = dia ainda sem resultado lançado
+            (mp[nf] = mp[nf] || {})[chaveData(d)] = { vendas: v, servicos: sv, metaVendas: num(l[2]), metaServicos: num(l[4]) };
+            return;
+        }
         (mp[nf] = mp[nf] || {})[chaveData(d)] = { vendas: pmtParsePerc(l[2]), servicos: pmtParsePerc(l[3]) };
     });
     return mp;
@@ -2783,6 +2807,10 @@ function resumoPmt(nf) {
         return { d, k, r, okV, okS, status, hoje: d.getTime() === hoje.getTime(), passado: d < hoje, temDado };
     });
     return { linhas, premiados, perdidos, restantes, total: linhas.length };
+}
+function pmtMetaCelula(m) {
+    if (m == null || !(m > 0)) return `<td class="pmt-vazio">—</td>`;
+    return `<td class="pmt-meta-val"><span class="pmt-rs">R$ </span>${m.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}</td>`;
 }
 function pmtCelula(v, ok) {
     if (v == null) return `<td class="pmt-vazio">—</td>`;
@@ -2848,7 +2876,7 @@ function pmtAtualizarValores() {
     // Linhas da tabela: numera cada PMT entregue
     document.querySelectorAll('#cardDetalhePmt .pmt-status.ok').forEach(e => {
         const n = +e.dataset.n;
-        e.innerHTML = `✅ PMT ${n} · ${tem ? pmtBRL(porDia) : '+' + PMT_BONUS_DIA + '%'}${n === PMT_MINIMO ? ' 🔓' : ''}`;
+        e.innerHTML = `✅ PMT BATIDA<small class="pmt-status-sub">${n}ª · ${tem ? '+' + pmtBRL(porDia) : '+' + PMT_BONUS_DIA + '%'}${n === PMT_MINIMO ? ' 🔓' : ''}</small>`;
     });
 }
 function pmtOnSalario(inp) {
@@ -2870,13 +2898,15 @@ function abrirDetalhePmt(nf, rolar = true) {
     let cont = 0;
     const tl = r.linhas.map(x => {
         let st;
-        if (x.status === 'ok') st = `<span class="pmt-status ok" data-n="${++cont}">✅ +${PMT_BONUS_DIA}%</span>`;
+        if (x.status === 'ok') st = `<span class="pmt-status ok" data-n="${++cont}">✅ PMT BATIDA</span>`;
         else if (x.status === 'nok') st = `<span class="pmt-status nok">${x.temDado ? '❌ Não atingiu' : '❌ Sem lançamento'}</span>`;
         else st = `<span class="pmt-status esp">${x.hoje ? '⏳ Em andamento' : '🕒 Aguardando'}</span>`;
         const cls = ['pmt-' + x.status, x.hoje ? 'pmt-hoje' : '', x.d.getDay() === 6 || x.d.getDay() === 0 ? 'pmt-fds' : ''].join(' ');
         return `<tr class="${cls}">
             <td><small>${PMT_DIAS_SEMANA[x.d.getDay()]}</small>${pad2(x.d.getDate())}/${pad2(x.d.getMonth() + 1)}</td>
+            ${pmtMetaCelula(x.r.metaVendas)}
             ${pmtCelula(x.r.vendas, x.okV)}
+            ${pmtMetaCelula(x.r.metaServicos)}
             ${pmtCelula(x.r.servicos, x.okS)}
             <td>${st}</td>
         </tr>`;
@@ -2906,7 +2936,7 @@ function abrirDetalhePmt(nf, rolar = true) {
     </div>
     <div class="pmt-tabela-wrap">
         <table class="pmt-tabela">
-            <thead><tr><th style="text-align:left;padding-left:18px;">Dia</th><th>Vendas</th><th>Serviços</th><th>Status</th></tr></thead>
+            <thead><tr><th style="text-align:left;padding-left:18px;">Dia</th><th>Meta Venda</th><th>% Ating Venda</th><th>Meta Serviços</th><th>% Ating Serviço</th><th>Status</th></tr></thead>
             <tbody>${tl}</tbody>
         </table>
     </div>`;
