@@ -1314,7 +1314,7 @@ const CACHE_KEY = 'dadosTrofeu_Memoria_v85';
     // Card da filial destaque = mês anterior ao do dash (vira sozinho no dia 3)
     window.MES_DESTAQUE_TXT = mesAtual === 0 ? `${nomesMeses[11]} ${anoAtual - 1}` : `${nomesMeses[mesAtual - 1]} ${anoAtual}`;
     
-    document.getElementById('titulo-dashboard').innerText = `🏆 TROFÉU EDIÇÃO BLACK DAS BLACK's - ${MES_REFERENCIA} / ${anoAtual} 🏆`;
+    document.getElementById('titulo-dashboard').innerText = `🏆 TROFÉU GLOBAL EDIÇÃO BLACK DAS BLACK's - ${MES_REFERENCIA} / ${anoAtual} 🏆`;
     document.getElementById('sb-sub').innerText = `REGIONAL CAMPO BOM • ${MES_REFERENCIA} ${anoAtual}`;
     document.title = `Troféu Global Regional Campo Bom - ${MES_REFERENCIA} ${anoAtual}`;
     const rm = document.getElementById('regras-mes'); if (rm) rm.innerText = `${MES_REFERENCIA} / ${anoAtual}`;
@@ -2585,7 +2585,7 @@ const DESTAQUE = {
     // 'rotativo'     = ranking real; o card da filial global aparece ao abrir (4s) e volta a cada 30s
     // 'rotativo-podio' = ranking real; o pódio aparece normal e, a cada 20s, a foto entra NO LUGAR DO PÓDIO
     // 'desligado'    = só o ranking real
-    modo: 'rotativo',
+    modo: 'apresentacao',
     segundosDestaque: 8,          // quanto tempo a foto fica na tela
     intervaloSegundos: 20,        // modo 'rotativo': tempo do ranking entre uma foto e outra
     intervaloSegundosPodio: 20,   // modo 'rotativo-podio': tempo do pódio entre uma foto e outra
