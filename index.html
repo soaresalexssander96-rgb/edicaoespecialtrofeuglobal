@@ -1271,6 +1271,13 @@ let ordenacao = { key: 'rank', dir: 1 };
 let listaCompletaFiliais = [];
 let dadosCarregados = false;
 
+const EMAILS_ADMIN = [
+    'alr_soares@magazineluiza.com.br',
+    'dirlei.dresch@magazineluiza.com.br',
+    'luismatos@magazineluiza.com.br',
+    'pr_queiroz@magazineluiza.com.br',
+    'alexia.vargas@consorciomagalu.com.br'
+];
 const FILIAIS_EXCLUIDAS = ['1123', '1131', '1138', '1139', '1503'];
 const NPS_MINIMO_RANKING = 85;
 const CARTAO_META_TROFEU = 115;   // Troféu Global: cartão pontua a partir de 115%
@@ -1415,6 +1422,15 @@ let loginEmAndamento = false;
 async function realizarLogin() {
     if (loginEmAndamento) return;
     esconderErro(); 
+    // Admins entram como antes: só o e-mail no campo LOGIN (sem ID)
+    const digitado = document.getElementById('login-usuario').value.trim().toLowerCase();
+    if (EMAILS_ADMIN.includes(digitado)) {
+        localStorage.setItem('gerente_filial_logada_trofeu', 'ADMIN');
+        verificarLoginSimulador();
+        aplicarTravaAbas();
+        if (abaPendenteLogin) { const a = abaPendenteLogin; abaPendenteLogin = null; trocarAba(a); }
+        return;
+    }
     const usuario = document.getElementById('login-usuario').value.trim().toUpperCase();
     const id = document.getElementById('login-id').value.trim();
     if (!usuario || !id) return mostrarErro('Preencha o LOGIN e o ID.');
