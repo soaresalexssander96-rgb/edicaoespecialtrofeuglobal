@@ -887,6 +887,134 @@
         #busca-ranking.dr-entra-busca { animation: drEntraItem .5s ease both; }
         .destaque-global .dg-filial { margin-top: 12px; font-family: var(--font-t); font-weight: 800; letter-spacing: .12em; color: #fff; font-size: clamp(.95rem, 5.4cqw, 1.45rem); text-shadow: 0 0 16px rgba(255,0,85,.55); }
         .destaque-global .dg-linha { height: 3px; width: 70%; margin: 10px auto 0; border-radius: 3px; background: linear-gradient(90deg, #00d2ff, #9b00e8, #ff0055, #ffd24a); background-size: 200% 100%; animation: brilhoCores 3s linear infinite; box-shadow: 0 0 12px rgba(255,0,85,.5); }
+
+        /* ===================================================
+           SUSPENSE (público não vê o resultado) + MODO APRESENTAÇÃO BLACK (admin)
+           =================================================== */
+        .banner-suspense-admin { display: none; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; max-width: 900px; margin: 0 auto 10px; padding: 8px 14px; border-radius: 40px; background: linear-gradient(90deg, rgba(0,0,0,.85), rgba(40,30,5,.85)); border: 1px solid rgba(255,210,74,.55); color: #dfe3ee; font-size: .85em; box-shadow: 0 0 18px rgba(255,210,74,.15); }
+        .banner-suspense-admin b { color: var(--gold); }
+        .banner-suspense-admin .btn-apresentar { padding: 7px 16px; font-size: .9em; }
+        .btn-apresentar { background: linear-gradient(135deg, #fff3b0 0%, #ffd24a 40%, #b8860b 100%) !important; color: #0a0700 !important; box-shadow: 0 6px 22px rgba(255,210,74,.4) !important; border: 1px solid #000 !important; }
+        .metas-suspense-nota { text-align: center; margin: 14px auto 0; max-width: 560px; font-weight: 900; letter-spacing: .3em; color: var(--gold); font-size: clamp(.75rem, 1.6vw, 1rem); animation: apPiscaNota 1.8s ease-in-out infinite; }
+        @keyframes apPiscaNota { 0%,100% { opacity: .55; } 50% { opacity: 1; text-shadow: 0 0 16px rgba(255,210,74,.7); } }
+        #toast-box { z-index: 10200; }
+
+        #apresentacao { position: fixed; inset: 0; z-index: 10000; display: none; overflow: hidden; cursor: pointer; user-select: none; -webkit-user-select: none; color: #fff; font-family: var(--font);
+            background: radial-gradient(circle at 90% 0%, rgba(214,20,90,.35) 0%, transparent 45%), radial-gradient(circle at 0% 100%, rgba(110,20,170,.40) 0%, transparent 48%), radial-gradient(circle at 100% 100%, rgba(10,120,130,.28) 0%, transparent 42%), #020203;
+            transition: background 1.2s ease; }
+        #apresentacao.show { display: block; animation: fadeIn .6s ease; }
+        #apresentacao > * { position: absolute; }
+        /* Brilho dourado atrás do pódio quando o 1º lugar é revelado (o confete preto aparece sobre o ouro) */
+        .ap-ouro-glow { left: 50%; top: 58%; width: 120vmax; height: 120vmax; transform: translate(-50%,-50%) scale(.2); border-radius: 50%; z-index: 0; pointer-events: none; opacity: 0; transition: opacity 1.4s ease, transform 1.6s cubic-bezier(.2,1,.3,1);
+            background: radial-gradient(circle, #fff3b0 0%, #ffd24a 14%, #d9a520 26%, #6b4c08 42%, rgba(20,14,2,.0) 62%); }
+        #apresentacao.ouro .ap-ouro-glow { opacity: .95; transform: translate(-50%,-50%) scale(1); }
+
+        .ap-luzes { inset: 0; pointer-events: none; z-index: 0; }
+        .ap-luzes::before, .ap-luzes::after { content: ''; position: absolute; top: -15%; width: 34vw; height: 135vh; background: linear-gradient(180deg, rgba(255,255,255,.16), rgba(255,255,255,0) 78%); clip-path: polygon(46% 0, 54% 0, 100% 100%, 0 100%); transform-origin: 50% 0; filter: blur(6px); animation: apHolofote 7s ease-in-out infinite alternate; }
+        .ap-luzes::before { left: 2%; }
+        .ap-luzes::after { right: 2%; animation-delay: -3.5s; animation-direction: alternate-reverse; }
+        @keyframes apHolofote { from { transform: rotate(-26deg); } to { transform: rotate(22deg); } }
+        #apresentacao.tensao .ap-luzes::before, #apresentacao.tensao .ap-luzes::after { animation-duration: .7s; background: linear-gradient(180deg, rgba(255,45,117,.25), rgba(255,45,117,0) 80%); }
+        #apresentacao.ouro .ap-luzes::before, #apresentacao.ouro .ap-luzes::after { background: linear-gradient(180deg, rgba(255,210,74,.40), rgba(255,210,74,0) 80%); animation-duration: 3s; }
+
+        .ap-palco { top: 17vh; bottom: 10vh; left: 0; right: 0; z-index: 1; }
+        .ap-vinheta { inset: 0; z-index: 2; pointer-events: none; opacity: 0; transition: opacity 1.2s ease; background: radial-gradient(ellipse 30% 50% at 50% 62%, transparent 0%, rgba(0,0,0,.94) 100%); }
+        #apresentacao.tensao .ap-vinheta { opacity: 1; }
+        .ap-topo { top: 3vh; left: 0; right: 0; text-align: center; z-index: 3; pointer-events: none; padding: 0 16px; }
+        .ap-sub { font-weight: 900; letter-spacing: .35em; color: #c9cbd6; font-size: clamp(.65rem, 1.15vw, .95rem); }
+        .ap-sub b { color: var(--gold); }
+        .ap-titulo { font-family: var(--font-t); font-weight: 800; font-size: clamp(1.5rem, 3.6vw, 3.2rem); margin-top: .5vh; line-height: 1.1;
+            background: linear-gradient(100deg, #8c8c96 0%, #ffffff 25%, #ffd24a 50%, #ffffff 75%, #8c8c96 100%); background-size: 220% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; animation: brilho 5s linear infinite; filter: drop-shadow(0 4px 20px rgba(255,210,74,.3)); }
+        .ap-titulo.pop { animation: brilho 5s linear infinite, apPopTitulo .6s cubic-bezier(.2,1.6,.4,1); }
+        #apresentacao.tensao .ap-titulo { animation: brilho 5s linear infinite, apGlitch .35s steps(2) infinite; }
+        @keyframes apPopTitulo { 0% { transform: scale(.6); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes apGlitch { 0% { filter: drop-shadow(3px 0 0 #ff2d75) drop-shadow(-3px 0 0 #22d3ee); transform: translate(0,0); } 50% { filter: drop-shadow(-3px 0 0 #ff2d75) drop-shadow(3px 0 0 #22d3ee); transform: translate(1px,-1px); } 100% { filter: drop-shadow(2px 1px 0 #ff2d75) drop-shadow(-2px -1px 0 #22d3ee); transform: translate(-1px,1px); } }
+        .ap-neon { top: calc(3vh + clamp(3.2rem, 7.4vw, 6.4rem)); left: 50%; width: min(520px, 70vw); height: 3px; transform: translateX(-50%); border-radius: 3px; z-index: 3; pointer-events: none;
+            background: linear-gradient(90deg, #22d3ee, #7c3aed, #ff2d55, #ff9f1c, #ffd24a); background-size: 200% 100%; animation: brilho 3s linear infinite; box-shadow: 0 0 14px rgba(255,45,85,.55); }
+
+        .ap-rodape { bottom: calc(3.6vh + 14px); left: 24px; right: 24px; z-index: 3; display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+        .ap-dica { color: #9aa0b4; font-size: .85em; font-weight: 600; letter-spacing: .5px; animation: apPiscaNota 2.4s ease-in-out infinite; }
+        .ap-ctrl { display: flex; gap: 8px; }
+        .ap-ctrl button { background: rgba(0,0,0,.6); border: 1px solid rgba(255,210,74,.35); color: #dfe3ee; padding: 7px 14px; border-radius: 20px; font-family: inherit; font-weight: 700; font-size: .8em; cursor: pointer; }
+        .ap-ctrl button:hover { background: rgba(255,210,74,.15); color: #fff; }
+        /* faixa "BLACK" correndo no rodapé */
+        .ap-faixa { bottom: 0; left: 0; right: 0; height: 3.6vh; min-height: 22px; z-index: 3; overflow: hidden; background: #000; border-top: 1px solid rgba(255,210,74,.5); pointer-events: none; display: flex; align-items: center; }
+        .ap-faixa-trilha { display: inline-flex; white-space: nowrap; animation: apFaixa 26s linear infinite; font-weight: 900; letter-spacing: .3em; font-size: clamp(.6rem, 1.4vh, .85rem); color: var(--gold); }
+        .ap-faixa-trilha span { padding-right: 2.5em; }
+        .ap-faixa-trilha i { font-style: normal; color: #ff2d75; padding-right: 2.5em; }
+        @keyframes apFaixa { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        .ap-flash { inset: 0; z-index: 4; opacity: 0; pointer-events: none; background: radial-gradient(circle at 50% 55%, #fff8d6 0%, #ffd24a 35%, #b8860b 70%, #000 100%); }
+        .ap-flash.bang { animation: apFlashBang 1s ease-out; }
+        .ap-flash.bang-branco { background: #fff; animation: apFlashBang .8s ease-out; }
+        @keyframes apFlashBang { 0% { opacity: .95; } 100% { opacity: 0; } }
+        .ap-blackout { inset: 0; z-index: 4; background: #000; opacity: 0; pointer-events: none; transition: opacity .35s ease; }
+        .ap-blackout.on { opacity: 1; }
+
+        .ap-cena { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transform: scale(.95); transition: opacity .7s ease, transform .7s ease; pointer-events: none; padding: 0 16px; }
+        .ap-cena.ativa { opacity: 1; transform: none; }
+
+        /* Intro BLACK DAS BLACK'S */
+        .ap-intro-black { text-align: center; line-height: .9; }
+        .ap-intro-black .ib-big { font-family: 'Inter', sans-serif; font-weight: 900; font-size: clamp(3rem, 12vw, 9.5rem); letter-spacing: -.01em;
+            background: linear-gradient(100deg, #6e6e78 0%, #ffffff 35%, #b8b8c4 50%, #ffffff 65%, #6e6e78 100%); background-size: 220% auto; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 22px rgba(255,255,255,.25)); animation: brilho 4s linear infinite; }
+        .ap-intro-black .ib-das { font-weight: 900; color: var(--gold); letter-spacing: .35em; font-size: clamp(1.1rem, 3.4vw, 2.6rem); margin: .2em 0 .1em .35em; text-shadow: 0 0 22px rgba(255,210,74,.65); }
+        .ap-trofeu-grande { width: clamp(70px, 12vh, 130px); margin: 2vh auto 0; animation: flutuaTrofeu 3.2s ease-in-out infinite; filter: drop-shadow(0 0 30px rgba(255,210,74,.6)); }
+        .ap-trofeu-grande svg { width: 100%; height: auto; display: block; }
+        .ap-pergunta { font-family: var(--font-t); font-weight: 800; text-align: center; font-size: clamp(1.3rem, 3.4vw, 3rem); line-height: 1.05; margin-top: 2vh; }
+        .ap-pergunta span { color: var(--gold); text-shadow: 0 0 30px rgba(255,210,74,.55); }
+        .ap-info { margin-top: 1.6vh; color: #c9cbd6; font-weight: 700; letter-spacing: 2px; font-size: clamp(.75rem, 1.3vw, 1.05rem); text-transform: uppercase; }
+
+        /* Lista 10º–4º */
+        .ap-lista-itens { width: min(760px, 94vw); }
+        .ap-li { display: grid; grid-template-columns: 64px 1fr auto; gap: 16px; align-items: center; background: linear-gradient(90deg, rgba(10,10,12,.95), rgba(28,22,8,.92)); border: 1px solid rgba(255,210,74,.25); border-left: 5px solid #ff2d75; border-radius: 14px; padding: clamp(6px, 1.2vh, 12px) 20px; margin: clamp(4px, .9vh, 9px) 0; opacity: 0; transform: translateX(-80px); box-shadow: 0 0 14px rgba(255,45,117,.12); }
+        .ap-lista.ativa .ap-li { animation: apEntraLi .65s cubic-bezier(.2,1.3,.4,1) forwards; }
+        @keyframes apEntraLi { to { opacity: 1; transform: none; } }
+        .ap-li .lp { font-family: var(--font-t); font-weight: 800; font-size: clamp(1.1rem, 2.2vw, 1.8rem); color: #ff2d75; text-shadow: 0 0 12px rgba(255,45,117,.5); }
+        .ap-li .ln { font-weight: 800; font-size: clamp(.95rem, 1.7vw, 1.35rem); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ap-li .ln small { display: block; color: #9aa0b4; font-weight: 600; font-size: .7em; text-transform: uppercase; letter-spacing: 1px; }
+        .ap-li .lt { font-family: var(--font-t); font-weight: 800; color: var(--gold); font-size: clamp(1rem, 2vw, 1.6rem); white-space: nowrap; }
+
+        /* Pódio */
+        .ap-podio { flex-direction: row; align-items: flex-end; justify-content: center; gap: clamp(10px, 3vw, 46px); }
+        .ap-slot { display: flex; flex-direction: column; align-items: center; transition: opacity .8s ease, filter .8s ease; position: relative; }
+        .ap-slot.apagado { opacity: .22; filter: grayscale(.8) blur(1px); }
+        .ap-slot-1 { --cor: #ffd24a; --glow: rgba(255,210,74,.8); --w: clamp(165px, 21vw, 300px); --h: clamp(250px, 46vh, 430px); --b: clamp(60px, 13vh, 130px); z-index: 2; }
+        .ap-slot-2 { --cor: #d7dbe6; --glow: rgba(215,219,230,.6); --w: clamp(145px, 17.5vw, 255px); --h: clamp(220px, 39vh, 370px); --b: clamp(42px, 9vh, 92px); }
+        .ap-slot-3 { --cor: #e09155; --glow: rgba(224,145,85,.6); --w: clamp(145px, 17.5vw, 255px); --h: clamp(220px, 39vh, 370px); --b: clamp(28px, 6vh, 62px); }
+        .ap-card { position: relative; width: var(--w); height: var(--h); perspective: 1400px; }
+        .ap-raios { position: absolute; left: 50%; top: 42%; width: 280%; aspect-ratio: 1; z-index: 0; pointer-events: none; opacity: 0; transition: opacity 1.2s ease .5s;
+            background: repeating-conic-gradient(from 0deg, var(--glow) 0deg 7deg, transparent 7deg 22deg);
+            -webkit-mask-image: radial-gradient(circle, #000 12%, transparent 62%); mask-image: radial-gradient(circle, #000 12%, transparent 62%);
+            animation: apGirarRaios 16s linear infinite; }
+        @keyframes apGirarRaios { from { transform: translate(-50%,-50%) rotate(0deg); } to { transform: translate(-50%,-50%) rotate(360deg); } }
+        .ap-slot.revelado .ap-raios { opacity: .5; }
+        .ap-slot-1.revelado .ap-raios { opacity: .9; background: repeating-conic-gradient(from 0deg, rgba(0,0,0,.85) 0deg 6deg, transparent 6deg 12deg, rgba(255,210,74,.9) 12deg 18deg, transparent 18deg 24deg); }
+        .ap-gira { position: absolute; inset: 0; z-index: 1; transform-style: preserve-3d; transition: transform 1.1s cubic-bezier(.3,1.35,.5,1); }
+        .ap-slot.revelado .ap-gira { transform: rotateY(180deg); }
+        .ap-face { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; border-radius: 22px; display: flex; flex-direction: column; align-items: center; text-align: center; overflow: hidden; padding: 16px 12px; }
+        .ap-frente { justify-content: center; background: linear-gradient(160deg, #141414 0%, #000 100%); border: 2px solid var(--cor); box-shadow: 0 0 34px var(--glow), inset 0 0 40px rgba(0,0,0,.8); }
+        .ap-frente::after { content: 'BLACK'; position: absolute; bottom: 12px; left: 0; right: 0; font-weight: 900; letter-spacing: .4em; font-size: .7em; color: rgba(255,255,255,.18); }
+        .ap-q { font-family: var(--font-t); font-weight: 800; font-size: calc(var(--h) * .42); line-height: 1; color: var(--cor); text-shadow: 0 0 34px var(--glow); animation: pulsaQ 1.6s ease-in-out infinite; }
+        .ap-frente .ap-poslbl { margin-top: 10px; }
+        .ap-verso { transform: rotateY(180deg); justify-content: flex-start; padding-top: 20px; background: linear-gradient(180deg, #1c1c1f 0%, #000 80%); border: 3px solid var(--cor); box-shadow: 0 0 60px var(--glow), inset 0 0 30px rgba(255,210,74,.08); }
+        .ap-slot-1 .ap-verso { background: linear-gradient(180deg, #2a2008 0%, #000 75%); }
+        .ap-foto { width: calc(var(--w) * .64); aspect-ratio: 1; border-radius: 50%; object-fit: cover; object-position: center 15%; border: 4px solid var(--cor); box-shadow: 0 0 30px var(--glow); background: #000; flex: 0 0 auto; }
+        .ap-poslbl { margin-top: 12px; font-weight: 900; letter-spacing: 3px; color: var(--cor); font-size: clamp(.75rem, 1.2vw, 1.05rem); }
+        .ap-nome { font-family: var(--font-t); font-weight: 800; font-size: clamp(1.15rem, 2.4vw, 2.2rem); line-height: 1.1; margin-top: 4px; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ap-fil { color: #9aa0b4; font-weight: 700; font-size: clamp(.65rem, 1vw, .9rem); text-transform: uppercase; margin-top: 6px; letter-spacing: 1px; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .ap-pts { margin-top: auto; font-family: var(--font-t); font-weight: 800; font-size: clamp(1.2rem, 2.5vw, 2.3rem); color: var(--cor); text-shadow: 0 0 18px var(--glow); }
+        .ap-base { width: calc(var(--w) + 28px); height: var(--b); margin-top: 14px; border-radius: 12px 12px 0 0; background: linear-gradient(180deg, #1a1a1a, #000); border: 2px solid var(--cor); border-bottom: none; display: flex; justify-content: center; align-items: flex-start; padding-top: 4px; font-family: var(--font-t); font-weight: 800; font-size: calc(var(--b) * .55); line-height: 1; color: var(--cor); text-shadow: 0 0 18px var(--glow); box-shadow: 0 -6px 30px rgba(0,0,0,.6); }
+
+        @media (max-width: 700px) {
+            .ap-slot-1 { --w: 31vw; --h: 36vh; }
+            .ap-slot-2, .ap-slot-3 { --w: 27vw; --h: 31vh; }
+            .ap-face { padding: 10px 6px; }
+            .ap-rodape { left: 10px; right: 10px; }
+            .ap-dica { display: none; }
+        }
+        @keyframes brilho { from { background-position: 0% center; } to { background-position: 220% center; } }
+
     </style>
 </head>
 <body>
@@ -1024,6 +1152,10 @@
 
         <div class="destaque-podio" id="destaque-podio" onclick="pularDestaque()" title="Toque para ver o pódio"></div>
         <div class="secao-lista-wrapper">
+            <div id="banner-suspense-admin" class="banner-suspense-admin" data-html2canvas-ignore="true">
+                <span>🔒 <b>Suspense ativo</b> — só você vê o resultado.</span>
+                <button class="btn-top10 btn-apresentar" onclick="abrirApresentacao()">🎬 Apresentar</button>
+            </div>
             <input type="text" id="busca-ranking" class="busca-ranking" placeholder="🔍 Pesquisar filial, cidade ou gerente..." onkeyup="filtrarSelecao('ranking')" data-html2canvas-ignore="true">
             <div class="secao-lista" id="lista-filiais">
                 <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
@@ -1038,6 +1170,7 @@
 <!-- ABA 2: VISUALIZAR METAS -->
 <div id="aba-metas" class="tab-content">
     <div class="container-metas">
+        <div id="metas-suspense" style="display:none;margin-top:20px;"></div>
         <div class="toolbar-metas">
             <input type="text" id="busca-metas" class="busca-ranking" placeholder="🔍 Filtrar filial ou cidade..." oninput="renderTabelaMetas(false)">
         </div>
@@ -1145,6 +1278,7 @@
         <div id="tela-selecao-simul" class="tela-selecao" style="display:none;">
             <div style="display:flex;justify-content:center;margin-bottom:10px;gap:15px;flex-wrap:wrap;">
                 <button class="btn-voltar btn-logout" id="btn-logout-admin" onclick="deslogarSimulador()">Sair do Modo Admin</button>
+                <button class="btn-top10 btn-apresentar" onclick="abrirApresentacao()">🎬 Modo Apresentação</button>
                 <button class="btn-top10" onclick="abrirTelaComparativo()">⚖️ Comparativo de Lojas</button>
             </div>
             <div class="placeholder-compacto">
@@ -1248,6 +1382,29 @@
     </button>
 </div>
 
+<!-- MODO APRESENTAÇÃO BLACK (admin) -->
+<div id="apresentacao" data-html2canvas-ignore="true">
+    <div class="ap-ouro-glow"></div>
+    <div class="ap-luzes"></div>
+    <div class="ap-palco" id="ap-palco"></div>
+    <div class="ap-vinheta"></div>
+    <div class="ap-topo">
+        <div class="ap-sub" id="ap-sub"></div>
+        <div class="ap-titulo" id="ap-titulo"></div>
+    </div>
+    <div class="ap-neon"></div>
+    <div class="ap-rodape">
+        <span class="ap-dica" id="ap-dica"></span>
+        <div class="ap-ctrl">
+            <button onclick="apTelaCheia()">⛶ Tela cheia (F)</button>
+            <button onclick="fecharApresentacao()">✕ Sair (ESC)</button>
+        </div>
+    </div>
+    <div class="ap-faixa"><div class="ap-faixa-trilha" id="ap-faixa-trilha"></div></div>
+    <div class="ap-blackout" id="ap-blackout"></div>
+    <div class="ap-flash" id="ap-flash"></div>
+</div>
+
 <audio id="som-vitoria" src="senna.mp3" preload="auto"></audio>
 
 <script>
@@ -1309,6 +1466,7 @@ const CACHE_KEY = 'dadosTrofeu_Novembro_v1';
     const nomesMeses = ['JANEIRO','FEVEREIRO','MARÇO','ABRIL','MAIO','JUNHO','JULHO','AGOSTO','SETEMBRO','OUTUBRO','NOVEMBRO','DEZEMBRO'];
     const MES_REFERENCIA = nomesMeses[mesAtual];
     // Card da filial destaque = mês anterior ao do dash (vira sozinho no dia 3)
+    window.MES_TITULO = `${MES_REFERENCIA} ${anoAtual}`;
     window.MES_DESTAQUE_TXT = mesAtual === 0 ? `${nomesMeses[11]} ${anoAtual - 1}` : `${nomesMeses[mesAtual - 1]} ${anoAtual}`;
     
     document.getElementById('titulo-dashboard').innerText = `🏆 TROFÉU GLOBAL EDIÇÃO BLACK DAS BLACK's - ${MES_REFERENCIA} / ${anoAtual} 🏆`;
@@ -1426,6 +1584,7 @@ async function realizarLogin() {
     const digitado = document.getElementById('login-usuario').value.trim().toLowerCase();
     if (EMAILS_ADMIN.includes(digitado)) {
         localStorage.setItem('gerente_filial_logada_trofeu', 'ADMIN');
+        reaplicarVisibilidade();
         verificarLoginSimulador();
         aplicarTravaAbas();
         if (abaPendenteLogin) { const a = abaPendenteLogin; abaPendenteLogin = null; trocarAba(a); }
@@ -1447,6 +1606,7 @@ async function realizarLogin() {
         if (resp && resp.ok) {
             document.getElementById('login-id').value = '';
             localStorage.setItem('gerente_filial_logada_trofeu', resp.admin ? 'ADMIN' : String(resp.filial).trim());
+            if (resp.admin) reaplicarVisibilidade();
             verificarLoginSimulador();
             aplicarTravaAbas();
             if (abaPendenteLogin) { const a = abaPendenteLogin; abaPendenteLogin = null; trocarAba(a); }
@@ -1496,8 +1656,10 @@ function verificarLoginSimulador() {
 }
 
 function deslogarSimulador() { 
-    localStorage.removeItem('gerente_filial_logada_trofeu'); 
+    const eraAdmin = isAdmin();
+    localStorage.removeItem('gerente_filial_logada_trofeu');
     document.getElementById('login-id').value = ''; 
+    if (eraAdmin) reaplicarVisibilidade();
     verificarLoginSimulador(); 
     aplicarTravaAbas();
 }
@@ -2503,6 +2665,16 @@ function gerarComparativo() {
 }
 
 function renderTabelaMetas(anim = false) {
+    // Suspense: público não vê a tabela — mostra a foto da filial destaque do mês anterior
+    const ocultoMetas = rankingOculto();
+    const ms = document.getElementById('metas-suspense');
+    if (ms) {
+        ms.style.display = ocultoMetas ? 'block' : 'none';
+        if (ocultoMetas && !ms.innerHTML) ms.innerHTML = htmlCardDestaque() + '<div class="metas-suspense-nota">RESULTADO REVELADO NA PREMIAÇÃO</div>';
+    }
+    document.querySelector('#aba-metas .tabela-container-scroll').style.display = ocultoMetas ? 'none' : '';
+    document.querySelector('#aba-metas .toolbar-metas').style.display = ocultoMetas ? 'none' : '';
+    if (ocultoMetas) { document.getElementById('corpo-tabela-metas').innerHTML = ''; return; }
     const flt = (document.getElementById('busca-metas').value || '').toLowerCase().trim();
     let ls = listaCompletaFiliais.filter(f => !flt || (`fl ${f.numFilial} ${f.cidade} ${f.gerente}`).toLowerCase().includes(flt));
     
@@ -2569,7 +2741,7 @@ const DESTAQUE = {
     // 'rotativo'     = ranking real; o card da filial global aparece ao abrir (4s) e volta a cada 30s
     // 'rotativo-podio' = ranking real; o pódio aparece normal e, a cada 20s, a foto entra NO LUGAR DO PÓDIO
     // 'desligado'    = só o ranking real
-    modo: 'rotativo',
+    modo: 'apresentacao',
     segundosDestaque: 8,          // quanto tempo a foto fica na tela
     intervaloSegundos: 25,        // modo 'rotativo': tempo do ranking entre uma foto e outra
     intervaloSegundosPodio: 20,   // modo 'rotativo-podio': tempo do pódio entre uma foto e outra
@@ -2981,10 +3153,12 @@ function renderizarTela(js) {
     listaCompletaFiliais = fs;
     if (fs.length) dadosCarregados = true;
 
-    if (DESTAQUE.modo === 'apresentacao') {
+    atualizarBannerSuspense();
+    if (rankingOculto()) {
         pintarDestaque();
     } else {
     document.getElementById('lista-filiais').classList.remove('modo-destaque');
+    { const bz = document.getElementById('busca-ranking'); if (bz) bz.style.display = ''; }
     if (fs.length > 0) preencherPodio(1, fs[0], 'ffd700', 180);
     if (fs.length > 1) preencherPodio(2, fs[1], 'C0C0C0', 140);
     if (fs.length > 2) preencherPodio(3, fs[2], 'CD7F32', 130);
@@ -3139,6 +3313,351 @@ async function gerarImagem(fmt) {
         showToast("Erro ao gerar.", 'erro'); 
     }
 }
+
+/* =========================================================
+   🔒 SUSPENSE + 🎬 MODO APRESENTAÇÃO BLACK (somente admin)
+   Suspense = DESTAQUE.modo 'apresentacao': o público vê o pódio com "?"
+   e, na aba Metas, a foto da filial destaque do mês anterior.
+   Admin (e-mail de admin no login do Simulador) vê o resultado real
+   e o botão 🎬 Apresentar.
+   Avançar: clique, ESPAÇO, ENTER, → ou PageDown (passador de slides)
+   F = tela cheia • ESC = sair
+   ========================================================= */
+function isAdmin() { try { return localStorage.getItem('gerente_filial_logada_trofeu') === 'ADMIN'; } catch (e) { return false; } }
+function suspenseAtivo() { return DESTAQUE.modo === 'apresentacao'; }
+function rankingOculto() { return suspenseAtivo() && !isAdmin(); }
+function atualizarBannerSuspense() {
+    const b = document.getElementById('banner-suspense-admin');
+    if (b) b.style.display = (suspenseAtivo() && isAdmin()) ? 'flex' : 'none';
+}
+// Redesenha ranking/metas quando o admin entra ou sai (usa os dados já carregados)
+function reaplicarVisibilidade() {
+    try { const js = JSON.parse(localStorage.getItem(CACHE_KEY)); if (js) renderizarTela(js); } catch (e) {}
+    atualizarBannerSuspense();
+}
+
+let apEtapas = [], apEtapa = 0, apOcupado = false, apAberta = false, apTimers = [], apCtx = null;
+// Black das Black's: preto + dourado (1º), preto + prata (2º), preto + bronze (3º)
+const AP_CORES_1 = ['#000000', '#141414', '#2b2b2b', '#ffd24a', '#f5b301', '#b8860b', '#fff3b0'];
+const AP_CORES_2 = ['#000000', '#1c1c1c', '#d7dbe6', '#ffffff', '#9aa6c0'];
+const AP_CORES_3 = ['#000000', '#1c1c1c', '#e09155', '#b8642e', '#ffb27a'];
+const AP_FORMAS = ['square', 'circle', 'star'];
+
+function apT(fn, ms) { const id = setTimeout(() => { if (apAberta) fn(); }, ms); apTimers.push(id); return id; }
+function apEl(id) { return document.getElementById(id); }
+function apConfete(o) { try { confetti(Object.assign({ zIndex: 10100, shapes: AP_FORMAS, scalar: 1.1 }, o)); } catch (e) {} }
+
+function abrirApresentacao() {
+    if (!isAdmin()) return showToast('Modo Apresentação disponível só para administradores.', 'erro');
+    const fs = listaCompletaFiliais;
+    if (fs.length < 3) return showToast('Dados ainda carregando — tente em alguns segundos.', 'erro');
+
+    apAberta = true; apEtapa = 0; apOcupado = false;
+    apEtapas = ['intro'];
+    if (fs.length > 3) apEtapas.push('lista');
+    apEtapas.push('podio', 'p3', 'p2', 'p1', 'fim');
+
+    const trofeu = document.querySelector('.trofeu-lado svg');
+    const fallback = (f, cor) => `https://ui-avatars.com/api/?name=${encodeURIComponent(f.gerente)}&background=${cor}&color=000000&size=300&bold=true`;
+
+    const slot = (p) => {
+        const f = fs[p - 1], cor = p === 1 ? 'ffd24a' : p === 2 ? 'd7dbe6' : 'e09155';
+        const fb = fallback(f, cor);
+        const foto = f.foto && String(f.foto).startsWith('http') ? f.foto : fb;
+        return `
+        <div class="ap-slot ap-slot-${p}" id="ap-slot-${p}">
+            <div class="ap-card">
+                <div class="ap-raios"></div>
+                <div class="ap-gira">
+                    <div class="ap-face ap-frente">
+                        <div class="ap-q">?</div>
+                        <div class="ap-poslbl">${p}º LUGAR</div>
+                    </div>
+                    <div class="ap-face ap-verso">
+                        <img class="ap-foto" src="${escapeHtml(foto)}" alt="" onerror="this.onerror=null;this.src='${fb}';">
+                        <div class="ap-poslbl">${p === 1 ? '🏆 FILIAL GLOBAL' : p + 'º LUGAR'}</div>
+                        <div class="ap-nome">${escapeHtml(f.gerente)}</div>
+                        <div class="ap-fil">FL ${escapeHtml(f.numFilial)} • ${escapeHtml(f.cidade)}</div>
+                        <div class="ap-pts"><span class="animar-numero" data-valor="${f.pontosRanking}" data-tipo="num">0</span> pts</div>
+                    </div>
+                </div>
+            </div>
+            <div class="ap-base">${p}</div>
+        </div>`;
+    };
+
+    const ultimo = Math.min(fs.length, 10);
+    let itens = '';
+    for (let i = 3; i < ultimo; i++) {
+        const f = fs[i], atraso = (ultimo - 1 - i) * 0.38;
+        itens += `
+        <div class="ap-li" style="animation-delay:${atraso.toFixed(2)}s">
+            <span class="lp">${i + 1}º</span>
+            <span class="ln">${escapeHtml(f.gerente)}<small>FL ${escapeHtml(f.numFilial)} • ${escapeHtml(f.cidade)}</small></span>
+            <span class="lt">${f.pontosRanking.toFixed(0)} pts</span>
+        </div>`;
+    }
+
+    apEl('ap-palco').innerHTML = `
+        <div class="ap-cena ap-intro" id="ap-cena-intro">
+            <div class="ap-intro-black">
+                <div class="ib-big">BLACK</div>
+                <div class="ib-das">DAS</div>
+                <div class="ib-big">BLACK'S</div>
+            </div>
+            <div class="ap-trofeu-grande">${trofeu ? trofeu.outerHTML : '🏆'}</div>
+            <div class="ap-pergunta">QUEM LEVA O <span>TROFÉU GLOBAL?</span></div>
+            <div class="ap-info">${fs.length} filiais na disputa • apuração encerrada</div>
+        </div>
+        <div class="ap-cena ap-lista" id="ap-cena-lista">
+            <div class="ap-lista-itens">${itens}</div>
+        </div>
+        <div class="ap-cena ap-podio" id="ap-cena-podio">
+            ${slot(2)}${slot(1)}${slot(3)}
+        </div>`;
+
+    const faixa = '<span>✦ BLACK DAS BLACK\'S</span><i>✦ TROFÉU GLOBAL</i><span>✦ REGIONAL CAMPO BOM</span><i>✦ ' + escapeHtml(window.MES_TITULO || '') + '</i>';
+    apEl('ap-faixa-trilha').innerHTML = faixa.repeat(6);
+    apEl('ap-sub').innerHTML = 'TROFÉU GLOBAL • <b>EDIÇÃO BLACK DAS BLACK\'S</b> • REGIONAL CAMPO BOM';
+    apSetTitulo(window.MES_TITULO || '');
+    const ap = apEl('apresentacao');
+    ap.className = 'show';
+    document.body.style.overflow = 'hidden';
+    apMostrarCena('intro');
+    apDica();
+    apAudio();
+    try { audioOuro.load(); } catch (e) {}
+    if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+    }
+}
+
+function fecharApresentacao() {
+    apAberta = false;
+    apTimers.forEach(clearTimeout); apTimers = [];
+    try { confetti.reset(); } catch (e) {}
+    try { audioOuro.pause(); } catch (e) {}
+    apEl('apresentacao').className = '';
+    apEl('ap-palco').innerHTML = '';
+    apEl('ap-blackout').classList.remove('on');
+    document.body.style.overflow = '';
+    if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+}
+
+function apTelaCheia() {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
+}
+
+function apMostrarCena(nome) {
+    document.querySelectorAll('#ap-palco .ap-cena').forEach(c => c.classList.toggle('ativa', c.id === 'ap-cena-' + nome));
+}
+
+function apSetTitulo(txt) {
+    const t = apEl('ap-titulo');
+    t.innerText = txt;
+    t.classList.remove('pop'); void t.offsetWidth; t.classList.add('pop');
+}
+
+function apDica() {
+    const prox = apEtapas[apEtapa + 1];
+    const textos = {
+        lista: '▶ Próximo: do ' + Math.min(listaCompletaFiliais.length, 10) + 'º ao 4º lugar',
+        podio: '▶ Próximo: o pódio',
+        p3: '▶ Próximo: revelar o 3º lugar',
+        p2: '▶ Próximo: revelar o 2º lugar',
+        p1: '▶ Próximo: revelar a FILIAL GLOBAL',
+        fim: '▶ Próximo: encerramento'
+    };
+    apEl('ap-dica').innerText = prox ? textos[prox] + '  (clique / espaço)' : 'Fim! ESC para sair • clique para mais confete preto e dourado';
+}
+
+function apAvancar() {
+    if (!apAberta || apOcupado) return;
+    if (apEtapa >= apEtapas.length - 1) {
+        apConfete({ particleCount: 160, spread: 120, startVelocity: 45, origin: { x: Math.random() * .6 + .2, y: .45 }, colors: AP_CORES_1 });
+        return;
+    }
+    apEtapa++;
+    const etapa = apEtapas[apEtapa];
+
+    if (etapa === 'lista') {
+        apSetTitulo(`DO ${Math.min(listaCompletaFiliais.length, 10)}º AO 4º LUGAR`);
+        apMostrarCena('lista');
+        tocarWhoosh();
+        apOcupado = true; apT(() => { apOcupado = false; }, (Math.min(listaCompletaFiliais.length, 10) - 3) * 380 + 700);
+    } else if (etapa === 'podio') {
+        apSetTitulo('O PÓDIO DA BLACK • ' + (window.MES_TITULO || ''));
+        apMostrarCena('podio');
+        tocarWhoosh();
+        apOcupado = true; apT(() => { apOcupado = false; }, 900);
+    } else if (etapa === 'p3') {
+        apRevelar(3);
+    } else if (etapa === 'p2') {
+        apRevelar(2);
+    } else if (etapa === 'p1') {
+        apRevelar(1);
+    } else if (etapa === 'fim') {
+        apSetTitulo('PARABÉNS, CAMPEÕES DA BLACK! 🖤💛');
+        tocarPrato();
+        fogosBlack(5000);
+    }
+    apDica();
+}
+
+function apRevelar(p) {
+    apOcupado = true;
+    const ap = apEl('apresentacao');
+    const slot = apEl('ap-slot-' + p);
+    const ouro = p === 1;
+    const durRufar = ouro ? 3600 : 1700;
+
+    apSetTitulo(ouro ? 'E a FILIAL GLOBAL da Black é...' : `E o ${p}º lugar é...`);
+    if (ouro) {
+        ap.classList.add('tensao');
+        document.querySelectorAll('.ap-slot-2, .ap-slot-3').forEach(s => s.classList.add('apagado'));
+    }
+    tocarRufar(durRufar);
+    tremer(slot.querySelector('.ap-card'), durRufar, ouro ? 9 : 4);
+
+    // 1º lugar: "blackout" total por um instante antes do clarão dourado
+    if (ouro) apT(() => apEl('ap-blackout').classList.add('on'), durRufar - 450);
+
+    apT(() => {
+        const fl = apEl('ap-flash');
+        fl.className = 'ap-flash'; void fl.offsetWidth; fl.classList.add(ouro ? 'bang' : 'bang-branco');
+        apEl('ap-blackout').classList.remove('on');
+        tocarPrato();
+        slot.classList.add('revelado');
+        apT(() => iniciarAnimacoes(slot), 450);
+
+        if (ouro) {
+            ap.classList.remove('tensao');
+            ap.classList.add('ouro');
+            tocarSenna();
+            apSetTitulo('🏆 FILIAL GLOBAL • ' + (window.MES_TITULO || '') + ' 🏆');
+            fogosBlack(8000);
+            apT(() => document.querySelectorAll('.ap-slot-2, .ap-slot-3').forEach(s => s.classList.remove('apagado')), 2600);
+            apT(() => { apOcupado = false; }, 2800);
+        } else {
+            const r = slot.getBoundingClientRect();
+            const o = { x: (r.left + r.width / 2) / innerWidth, y: (r.top + r.height / 3) / innerHeight };
+            const cores = p === 2 ? AP_CORES_2 : AP_CORES_3;
+            apConfete({ particleCount: 170, spread: 100, startVelocity: 42, origin: o, colors: cores });
+            apT(() => apConfete({ particleCount: 80, spread: 140, startVelocity: 28, origin: o, colors: cores }), 350);
+            apSetTitulo(`${p}º LUGAR`);
+            apT(() => { apOcupado = false; }, 1300);
+        }
+    }, durRufar);
+}
+
+function tocarSenna() {
+    try {
+        audioOuro.pause();
+        audioOuro.currentTime = 0;
+        audioOuro.volume = 1;
+        const p = audioOuro.play();
+        if (p) p.catch(() => showToast('🎵 Não consegui tocar o senna.mp3 — abra pelo site publicado (Vercel).', 'erro', 7000));
+    } catch (e) {}
+}
+
+function tremer(el, ms, max) {
+    const t0 = performance.now();
+    function f(t) {
+        const pr = Math.min((t - t0) / ms, 1);
+        const a = 0.5 + pr * pr * max;
+        el.style.transform = `translate(${(Math.random() - .5) * a}px, ${(Math.random() - .5) * a}px) rotate(${(Math.random() - .5) * a * .35}deg) scale(${1 + pr * .04})`;
+        if (pr < 1 && apAberta) requestAnimationFrame(f); else el.style.transform = '';
+    }
+    requestAnimationFrame(f);
+}
+
+// Fogos e canhões laterais em PRETO e DOURADO
+function fogosBlack(ms) {
+    const fim = Date.now() + ms;
+    (function laterais() {
+        if (!apAberta) return;
+        apConfete({ particleCount: 5, angle: 60, spread: 60, origin: { x: 0, y: .75 }, colors: AP_CORES_1 });
+        apConfete({ particleCount: 5, angle: 120, spread: 60, origin: { x: 1, y: .75 }, colors: AP_CORES_1 });
+        if (Date.now() < fim) requestAnimationFrame(laterais);
+    })();
+    for (let d = 0; d < ms - 800; d += 750) {
+        apT(() => {
+            apConfete({ particleCount: 110, spread: 360, startVelocity: 32, ticks: 90, gravity: .9, origin: { x: Math.random() * .7 + .15, y: Math.random() * .35 + .1 }, colors: AP_CORES_1 });
+            tocarEstouro();
+        }, d);
+    }
+}
+
+/* ===== Sons sintetizados (não precisa de arquivo) ===== */
+function apAudio() {
+    if (!apCtx) { try { apCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+    if (apCtx.state === 'suspended') apCtx.resume();
+    return apCtx;
+}
+function apRuido(ctx, dur) {
+    const b = ctx.createBuffer(1, Math.max(1, Math.floor(ctx.sampleRate * dur)), ctx.sampleRate);
+    const d = b.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    return b;
+}
+function tocarRufar(ms) {
+    const ctx = apAudio(); if (!ctx) return;
+    const buf = apRuido(ctx, 0.09), t0 = ctx.currentTime + 0.02, dur = ms / 1000;
+    let t = 0;
+    while (t < dur) {
+        const pr = t / dur;
+        const src = ctx.createBufferSource(); src.buffer = buf;
+        const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 170 + pr * 140; f.Q.value = 0.9;
+        const g = ctx.createGain(), v = 0.12 + pr * 0.6;
+        g.gain.setValueAtTime(v, t0 + t); g.gain.exponentialRampToValueAtTime(0.001, t0 + t + 0.08);
+        src.connect(f); f.connect(g); g.connect(ctx.destination);
+        src.start(t0 + t); src.stop(t0 + t + 0.09);
+        t += Math.max(0.032, 0.095 - pr * 0.065);
+    }
+}
+function tocarPrato() {
+    const ctx = apAudio(); if (!ctx) return;
+    const t0 = ctx.currentTime;
+    const o = ctx.createOscillator(), og = ctx.createGain();
+    o.frequency.setValueAtTime(150, t0); o.frequency.exponentialRampToValueAtTime(40, t0 + 0.45);
+    og.gain.setValueAtTime(1, t0); og.gain.exponentialRampToValueAtTime(0.001, t0 + 0.55);
+    o.connect(og); og.connect(ctx.destination); o.start(t0); o.stop(t0 + 0.6);
+    const src = ctx.createBufferSource(); src.buffer = apRuido(ctx, 2.6);
+    const hp = ctx.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 4500;
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.45, t0); g.gain.exponentialRampToValueAtTime(0.001, t0 + 2.5);
+    src.connect(hp); hp.connect(g); g.connect(ctx.destination); src.start(t0);
+}
+function tocarWhoosh() {
+    const ctx = apAudio(); if (!ctx) return;
+    const t0 = ctx.currentTime;
+    const src = ctx.createBufferSource(); src.buffer = apRuido(ctx, 0.7);
+    const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 1.2;
+    f.frequency.setValueAtTime(300, t0); f.frequency.exponentialRampToValueAtTime(3000, t0 + 0.6);
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.001, t0); g.gain.exponentialRampToValueAtTime(0.25, t0 + 0.3); g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.7);
+    src.connect(f); f.connect(g); g.connect(ctx.destination); src.start(t0);
+}
+function tocarEstouro() {
+    const ctx = apAudio(); if (!ctx) return;
+    const t0 = ctx.currentTime;
+    const src = ctx.createBufferSource(); src.buffer = apRuido(ctx, 0.5);
+    const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 1800;
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.07, t0); g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.45);
+    src.connect(f); f.connect(g); g.connect(ctx.destination); src.start(t0);
+}
+
+apEl('apresentacao').addEventListener('click', e => {
+    if (e.target.closest('.ap-ctrl')) return;
+    apAvancar();
+});
+document.addEventListener('keydown', e => {
+    if (!apAberta) return;
+    if ([' ', 'Enter', 'ArrowRight', 'ArrowDown', 'PageDown'].includes(e.key)) { e.preventDefault(); apAvancar(); }
+    else if (e.key === 'Escape') { fecharApresentacao(); }
+    else if (e.key === 'f' || e.key === 'F') { apTelaCheia(); }
+});
+setTimeout(atualizarBannerSuspense, 0);
+
 </script>
 </body>
 </html>
