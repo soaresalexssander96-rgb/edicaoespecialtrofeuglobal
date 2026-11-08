@@ -213,6 +213,9 @@
         #form-login p, #form-solicitar-token p, #form-criar-senha p { margin-bottom: 15px; font-size: 0.95em; line-height: 1.4; }
         .input-login { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid var(--line2); background: #0b1224; color: #fff; text-align: center; font-size: 1em; margin-bottom: 12px; outline: none; font-family: inherit; transition: all .2s; }
         .input-login:focus { border-color: #9b00e8; box-shadow: 0 0 0 3px rgba(155,0,232,.18); }
+        /* Gerente logado: PMT Premiada e Ganho Máx Black mostram só a própria filial */
+        .modo-gerente #tela-selecao-pmt, .modo-gerente #tela-selecao-ganho { display: none !important; }
+        .modo-gerente #tela-detalhe-pmt .topbar-detalhe, .modo-gerente #tela-detalhe-ganho .topbar-detalhe { display: none !important; }
         .link-senha { color: #00d2ff; cursor: pointer; font-size: .9em; text-decoration: underline; background: none; border: none; padding: 0; font-weight: 700; margin: 0 10px; font-family: inherit; }
 
         /* SIMULADOR */
@@ -1128,32 +1131,10 @@
                 <h3 style="color:var(--cyan);font-family:var(--font-t);">ACESSO RESTRITO</h3>
 
                 <div id="form-login">
-                    <p style="color:var(--mut2);">O Simulador é privado. Faça login com seu e-mail corporativo.</p>
-                    <input type="email" id="login-email" class="input-login" placeholder="E-mail Corporativo" autocomplete="username">
-                    <input type="password" id="login-senha" class="input-login" placeholder="Sua Senha" autocomplete="current-password">
-                    <button onclick="realizarLogin()" class="btn-top10" style="width:100%;">Entrar</button>
-                    <div style="margin-top:20px;display:flex;justify-content:center;gap:10px;flex-wrap:wrap;">
-                        <button class="link-senha" onclick="mostrarTelaSolicitarToken('criar')">Primeiro Acesso?</button> |
-                        <button class="link-senha" onclick="mostrarTelaSolicitarToken('esqueci')">Esqueci a Senha</button>
-                    </div>
-                </div>
-
-                <div id="form-solicitar-token" style="display:none;">
-                    <p style="color:var(--mut2);">Digite seu e-mail corporativo para receber o Token de 4 dígitos.</p>
-                    <input type="email" id="token-email" class="input-login" placeholder="gerenteXXX@magazineluiza.com.br">
-                    <button id="btn-enviar-token" onclick="enviarToken()" class="btn-top10" style="width:100%;background:linear-gradient(135deg,#00d98b 0%,#1a2a6c 100%);">Enviar Token Seguro</button>
-                    <div style="margin-top:20px;"><button class="link-senha" onclick="mostrarTelaLogin()">Voltar para Login</button></div>
-                </div>
-
-                <div id="form-criar-senha" style="display:none;">
-                    <p style="color:var(--mut2);">Token enviado! Digite o código recebido no e-mail abaixo e crie sua nova senha.</p>
-                    <input type="text" id="token-codigo" class="input-login" placeholder="Token de 4 dígitos" maxlength="4" inputmode="numeric" style="letter-spacing:6px;font-size:1.5em;font-weight:800;color:var(--gold);">
-                    <input type="password" id="nova-senha" class="input-login" placeholder="Crie sua nova senha" autocomplete="new-password">
-                    <button onclick="validarTokenECriarSenha()" class="btn-top10" style="width:100%;">Salvar e Entrar</button>
-                    <div style="margin-top:20px;">
-                        <button class="link-senha" onclick="mostrarTelaSolicitarToken('esqueci')">Reenviar Token</button> |
-                        <button class="link-senha" onclick="mostrarTelaLogin()">Cancelar</button>
-                    </div>
+                    <p style="color:var(--mut2);">O Simulador é privado. Entre com o seu LOGIN do portal e o ID que fica atrás do crachá.</p>
+                    <input type="text" id="login-usuario" class="input-login" placeholder="LOGIN DO PORTAL" autocomplete="username" autocapitalize="characters" spellcheck="false" style="text-transform:uppercase;">
+                    <input type="password" id="login-id" class="input-login" placeholder="SENHA: ( ID ATRÁS DO CRACHÁ )" autocomplete="current-password" inputmode="numeric">
+                    <button id="btn-entrar" onclick="realizarLogin()" class="btn-top10" style="width:100%;">Entrar</button>
                 </div>
 
                 <p id="erro-login" style="color:var(--red);display:none;margin-top:15px;font-weight:700;"></p>
@@ -1286,17 +1267,10 @@ document.addEventListener('mousemove', function(e) {
    CONFIGURAÇÃO CENTRAL
    ========================================================= */
 const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbxI_0joCEhw0470VLZDaNRR60v59U1npk71tuGUY5HIqqlFW3oq2Chre8d1x9s7Cf7g/exec';
-let tokenAtivo = null, emailEmProcesso = null, ordenacao = { key: 'rank', dir: 1 };
+let ordenacao = { key: 'rank', dir: 1 };
 let listaCompletaFiliais = [];
 let dadosCarregados = false;
 
-const EMAILS_ADMIN = [
-    'alr_soares@magazineluiza.com.br',
-    'dirlei.dresch@magazineluiza.com.br',
-    'luismatos@magazineluiza.com.br',
-    'pr_queiroz@magazineluiza.com.br',
-    'alexia.vargas@consorciomagalu.com.br'
-];
 const FILIAIS_EXCLUIDAS = ['1123', '1131', '1138', '1139', '1503'];
 const NPS_MINIMO_RANKING = 85;
 const CARTAO_META_TROFEU = 115;   // Troféu Global: cartão pontua a partir de 115%
@@ -1404,100 +1378,69 @@ function esconderErro() { document.getElementById('erro-login').style.display = 
 function mostrarTelaLogin() { 
     esconderErro(); 
     document.getElementById('form-login').style.display = 'block'; 
-    document.getElementById('form-solicitar-token').style.display = 'none'; 
-    document.getElementById('form-criar-senha').style.display = 'none'; 
 }
 
-function mostrarTelaSolicitarToken() { 
-    esconderErro(); 
-    document.getElementById('form-login').style.display = 'none'; 
-    document.getElementById('form-solicitar-token').style.display = 'block'; 
-    document.getElementById('form-criar-senha').style.display = 'none'; 
-    document.getElementById('token-email').value = document.getElementById('login-email').value; 
-}
-
-async function enviarToken() {
-    esconderErro(); 
-    let email = document.getElementById('token-email').value.trim().toLowerCase();
-    
-    if (EMAILS_ADMIN.includes(email)) { 
-        localStorage.setItem('gerente_filial_logada_trofeu', 'ADMIN'); 
-        verificarLoginSimulador(); 
-        return; 
+// ===== Trava das abas restritas (Simulador, PMT Premiada, Ganho Máx Black) =====
+let abaPendenteLogin = null;
+function filialLogada() { try { return localStorage.getItem('gerente_filial_logada_trofeu'); } catch (e) { return null; } }
+function ehGerenteLogado() { const f = filialLogada(); return !!f && f !== 'ADMIN'; }
+function aplicarTravaAbas() {
+    const f = filialLogada();
+    document.body.classList.toggle('modo-gerente', ehGerenteLogado());
+    if (!f) {
+        filialPmtAberta = null; filialGanhoAberta = null;
+        ['pmt', 'ganho'].forEach(a => {
+            document.getElementById('tela-detalhe-' + a).style.display = 'none';
+            document.getElementById('tela-selecao-' + a).style.display = 'block';
+        });
+        document.getElementById('cardDetalhePmt').innerHTML = ''; document.getElementById('cardDetalheGanho').innerHTML = '';
+        if (abaAtual === 'pmt' || abaAtual === 'ganho') trocarAba(abaAtual); // manda para o login
+        return;
     }
-    
-    let m = email.match(/^gerente(\d+)@magazineluiza\.com\.br$/);
-    if (m && m[1]) {
-        if (listaCompletaFiliais.find(s => s.numFilial === m[1])) {
-            let btn = document.getElementById('btn-enviar-token'); 
-            btn.innerText = 'Enviando...'; 
-            btn.disabled = true;
-            tokenAtivo = Math.floor(1000 + Math.random() * 9000).toString(); 
-            emailEmProcesso = email;
-            
-            try {
-                await fetch(URL_WEB_APP, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, 
-                    body: `action=send_token&email=${encodeURIComponent(email)}&token=${tokenAtivo}`
-                });
-                btn.innerText = 'Enviar Token Seguro'; 
-                btn.disabled = false;
-                document.getElementById('form-solicitar-token').style.display = 'none'; 
-                document.getElementById('form-criar-senha').style.display = 'block';
-            } catch (e) { 
-                mostrarErro('Erro de conexão.'); 
-                btn.innerText = 'Enviar Token Seguro'; 
-                btn.disabled = false; 
-            }
-        } else { 
-            mostrarErro(dadosCarregados ? 'Filial não encontrada.' : 'Aguarde, carregando dados da planilha... tente de novo em instantes.'); 
+    if (f === 'ADMIN') return;
+    const temDados = listaCompletaFiliais.some(x => x.numFilial === f);
+    filialPmtAberta = f; filialGanhoAberta = f;
+    [['pmt', abrirDetalhePmt, 'cardDetalhePmt'], ['ganho', abrirDetalheGanho, 'cardDetalheGanho']].forEach(([a, abrir, card]) => {
+        document.getElementById('tela-selecao-' + a).style.display = 'none';
+        document.getElementById('tela-detalhe-' + a).style.display = 'block';
+        if (temDados) abrir(f, false);
+        else document.getElementById(card).innerHTML = `<div style="text-align:center;padding:30px 10px;color:var(--mut2);font-weight:700;">⏳ Carregando os dados da sua filial...</div>`;
+    });
+}
+
+// Login igual ao dos seniores: LOGIN do portal + ID do crachá.
+// A conferência é feita no Apps Script (action=login); os IDs nunca chegam ao navegador.
+// Linhas com FILIAL = ADMIN na aba DADOS GERENTES entram como administrador.
+let loginEmAndamento = false;
+async function realizarLogin() {
+    if (loginEmAndamento) return;
+    esconderErro(); 
+    const usuario = document.getElementById('login-usuario').value.trim().toUpperCase();
+    const id = document.getElementById('login-id').value.trim();
+    if (!usuario || !id) return mostrarErro('Preencha o LOGIN e o ID.');
+
+    const btn = document.getElementById('btn-entrar');
+    loginEmAndamento = true; btn.disabled = true; btn.innerText = 'Entrando...';
+    try {
+        const r = await fetch(URL_WEB_APP, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `action=login&login=${encodeURIComponent(usuario)}&id=${encodeURIComponent(id)}`
+        });
+        const resp = await r.json();
+        if (resp && resp.ok) {
+            document.getElementById('login-id').value = '';
+            localStorage.setItem('gerente_filial_logada_trofeu', resp.admin ? 'ADMIN' : String(resp.filial).trim());
+            verificarLoginSimulador();
+            aplicarTravaAbas();
+            if (abaPendenteLogin) { const a = abaPendenteLogin; abaPendenteLogin = null; trocarAba(a); }
+        } else {
+            mostrarErro('Acesso negado: LOGIN ou ID incorretos.');
         }
-    } else { 
-        mostrarErro('E-mail inválido.'); 
-    }
-}
-
-function validarTokenECriarSenha() {
-    esconderErro(); 
-    let t = document.getElementById('token-codigo').value.trim();
-    let s = document.getElementById('nova-senha').value.trim();
-    
-    if (t !== tokenAtivo) return mostrarErro('Token incorreto.');
-    if (s.length < 4) return mostrarErro('Mínimo 4 caracteres.');
-    
-    let c = JSON.parse(localStorage.getItem('cofre_senhas_trofeu')) || {}; 
-    c[emailEmProcesso] = s; 
-    localStorage.setItem('cofre_senhas_trofeu', JSON.stringify(c));
-    localStorage.setItem('gerente_filial_logada_trofeu', emailEmProcesso.match(/^gerente(\d+)@magazineluiza\.com\.br$/)[1]);
-    verificarLoginSimulador();
-}
-
-function realizarLogin() {
-    esconderErro(); 
-    let email = document.getElementById('login-email').value.trim().toLowerCase();
-    let s = document.getElementById('login-senha').value.trim();
-    
-    if (EMAILS_ADMIN.includes(email)) { 
-        localStorage.setItem('gerente_filial_logada_trofeu', 'ADMIN'); 
-        verificarLoginSimulador(); 
-        return; 
-    }
-    
-    let m = email.match(/^gerente(\d+)@magazineluiza\.com\.br$/);
-    if (m && m[1]) {
-        let c = JSON.parse(localStorage.getItem('cofre_senhas_trofeu')) || {};
-        if (c[email] && c[email] === s) { 
-            localStorage.setItem('gerente_filial_logada_trofeu', m[1]); 
-            verificarLoginSimulador(); 
-        } else if (!c[email]) { 
-            mostrarErro('Usuário não cadastrado.'); 
-        } else { 
-            mostrarErro('Senha incorreta.'); 
-        }
-    } else { 
-        mostrarErro('E-mail inválido.'); 
+    } catch (e) {
+        mostrarErro('Erro de conexão. Tente de novo em instantes.');
+    } finally {
+        loginEmAndamento = false; btn.disabled = false; btn.innerText = 'Entrar';
     }
 }
 
@@ -1538,8 +1481,9 @@ function verificarLoginSimulador() {
 
 function deslogarSimulador() { 
     localStorage.removeItem('gerente_filial_logada_trofeu'); 
-    document.getElementById('login-senha').value = ''; 
+    document.getElementById('login-id').value = ''; 
     verificarLoginSimulador(); 
+    aplicarTravaAbas();
 }
 
 // Depois que os dados chegam/atualizam: mantém a tela em que a pessoa está no simulador
@@ -1562,7 +1506,8 @@ function fecharDetalheSimuladorAdmin() {
     document.getElementById('tela-selecao-simul').style.display = 'block'; 
 }
 
-[['login-email', realizarLogin], ['login-senha', realizarLogin], ['token-email', enviarToken], ['token-codigo', validarTokenECriarSenha], ['nova-senha', validarTokenECriarSenha]].forEach(([id, fn]) => { 
+setTimeout(aplicarTravaAbas, 0); // roda depois que o script inteiro carregou
+[['login-usuario', realizarLogin], ['login-id', realizarLogin]].forEach(([id, fn]) => { 
     let el = document.getElementById(id); 
     if(el) el.addEventListener('keydown', e => { if (e.key === 'Enter') fn(); }) 
 });
@@ -2020,6 +1965,11 @@ document.addEventListener('keydown', e => {
 }, { once: false });
 
 function trocarAba(n) {
+    if ((n === 'pmt' || n === 'ganho') && !filialLogada()) {
+        abaPendenteLogin = n;
+        showToast(`🔒 Faça login para ver ${n === 'pmt' ? 'a PMT Premiada' : 'o Ganho Máx Black'}.`, 'info');
+        n = 'simulador';
+    }
     if (n !== abaAtual) efeitoTrocaAba();
     abaAtual = n;
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -2428,6 +2378,7 @@ function renderListaGanho(ord) {
     filtrarSelecao('ganho');
 }
 function abrirDetalheGanho(nf, rolar = true) {
+    const fl = filialLogada(); if (!fl) return; if (fl !== 'ADMIN') nf = fl;
     const f = listaCompletaFiliais.find(x => x.numFilial === nf);
     if (!f) return;
     filialGanhoAberta = nf;
@@ -2471,6 +2422,7 @@ function abrirDetalheGanho(nf, rolar = true) {
     if (rolar) { window.scrollTo({ top: 0 }); const ab = document.getElementById('aba-ganho'); if (ab) ab.scrollTop = 0; }
 }
 function fecharDetalheGanho() {
+    if (ehGerenteLogado()) return;
     filialGanhoAberta = null;
     renderListaGanho();
     document.getElementById('tela-detalhe-ganho').style.display = 'none';
@@ -2890,6 +2842,7 @@ function pmtFormatarCampo(inp) {
 }
 
 function abrirDetalhePmt(nf, rolar = true) {
+    const fl = filialLogada(); if (!fl) return; if (fl !== 'ADMIN') nf = fl;
     const f = listaCompletaFiliais.find(x => x.numFilial === nf);
     if (!f) return;
     filialPmtAberta = nf;
@@ -2948,6 +2901,7 @@ function abrirDetalhePmt(nf, rolar = true) {
     if (rolar) { window.scrollTo({ top: 0 }); const ab = document.getElementById('aba-pmt'); if (ab) ab.scrollTop = 0; }
 }
 function fecharDetalhePmt() {
+    if (ehGerenteLogado()) return;
     filialPmtAberta = null;
     document.getElementById('tela-detalhe-pmt').style.display = 'none';
     document.getElementById('tela-selecao-pmt').style.display = 'block';
@@ -3072,6 +3026,7 @@ function renderizarTela(js) {
     filtrarSelecao('ganho');
     if (filialGanhoAberta && document.getElementById('tela-detalhe-ganho').style.display === 'block') abrirDetalheGanho(filialGanhoAberta, false);
     if (filialPmtAberta && document.getElementById('tela-detalhe-pmt').style.display === 'block') abrirDetalhePmt(filialPmtAberta, false);
+    aplicarTravaAbas();
     iniciarAnimacoes();
 }
 
