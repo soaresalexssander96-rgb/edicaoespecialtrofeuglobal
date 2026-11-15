@@ -247,7 +247,7 @@ button{font:inherit;color:inherit}
     <p>"Regional com o maior número de lojas entregando meta na Diretoria Virtual"</p>
   </div>
   <div class="pk-cards" id="pk-cards"></div>
-<div class="pk-rodape"span><br><button type="button" class="pk-link"
+<div class="pk-rodape"><button type="button" class="pk-link"
    id="pk-admin-entrar">👑 ENTRAR COMO ADMINISTRADOR</button></div>
 </section>
 
@@ -755,14 +755,14 @@ const INTRO_ANTES = `<script>(function(){
 const INTRO_DEPOIS = `<script>(function(){
   var ib=document.getElementById('intro-black'), sub=ib && ib.querySelector('.ib-sub');
   if (sub) sub.textContent='EDIÇÃO ESPECIAL';
-  function avisar(){ try{ parent.__hubIntroFim(); }catch(e){} }
+  var avisado=false;
+  function avisar(){ if (avisado) return; avisado=true; try{ parent.__hubIntroFim(); }catch(e){} }
   if (!ib || !ib.classList.contains('show')) { avisar(); return; }
-  var orig=window.fecharIntro;
-  window.fecharIntro=function(){
-    var ja = ib.classList.contains('saindo') || !ib.classList.contains('show');
-    orig.apply(this, arguments);
-    if (!ja) avisar();
-  };
+  // a intro pode fechar por vários caminhos (fim automático, toque para pular...):
+  // observa a própria intro e avisa o hub assim que ela começar a sair
+  new MutationObserver(function(){
+    if (ib.classList.contains('saindo') || !ib.classList.contains('show')) avisar();
+  }).observe(ib, { attributes: true, attributeFilter: ['class'] });
 })();<\/script>`;
 
 // Ponte: cada painel enxerga o admin central como window.BlackAdmin
