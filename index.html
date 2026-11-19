@@ -2531,6 +2531,7 @@ function aplicarTravaAbas() {
         return;
     }
     if (f === 'ADMIN') return;
+    registrarAcesso(f);
     const temDados = listaCompletaFiliais.some(x => x.numFilial === f);
     filialPmtAberta = f; filialGanhoAberta = f;
     [['pmt', abrirDetalhePmt, 'cardDetalhePmt'], ['ganho', abrirDetalheGanho, 'cardDetalheGanho']].forEach(([a, abrir, card]) => {
