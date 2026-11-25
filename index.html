@@ -2156,7 +2156,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
                         <th data-key="nps">NPS <span style="color:var(--orange);">HABILITADOR</span></th>
                         <th data-key="vendas">Vendas <span>25 PTS</span></th>
                         <th data-key="crescimento">Cresc. <span>15 PTS</span></th>
-                        <th data-key="servicos110">Serv 115% <span>15 PTS</span></th>
+                        <th data-key="servicos110">Serv 110% <span>15 PTS</span></th>
                         <th data-key="cartao">Cartão 115% <span>15 PTS</span></th>
                         <th data-key="cdc">CDC <span>10 PTS</span></th>
                         <th data-key="consorcio">Consórcio <span>10 PTS</span></th>
@@ -2211,7 +2211,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
                 <div class="rg-lista">
                     <div class="rg-linha"><span class="rg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.7 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6"/></svg></span><span class="rg-nome">VENDAS</span><span class="rg-pts"><b>25</b> PONTOS</span></div>
                     <div class="rg-linha"><span class="rg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="15 7 21 7 21 13"/></svg></span><span class="rg-nome">CRESCIMENTO</span><span class="rg-pts"><b>15</b> PONTOS</span></div>
-                    <div class="rg-linha"><span class="rg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3 12 2"/></svg></span><span class="rg-nome">SERVIÇO 115%</span><span class="rg-pts"><b>15</b> PONTOS</span></div>
+                    <div class="rg-linha"><span class="rg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.1 8.3 22 9.3 17 14.1 18.2 21 12 17.8 5.8 21 7 14.1 2 9.3 8.9 8.3 12 2"/></svg></span><span class="rg-nome">SERVIÇO 110%</span><span class="rg-pts"><b>15</b> PONTOS</span></div>
                     <div class="rg-linha rg-nova"><span class="rg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="6" y1="15" x2="10" y2="15"/></svg></span><span class="rg-nome">CARTÃO 115%<span class="rg-tag">NOVO</span></span><span class="rg-pts"><b>15</b> PONTOS</span></div>
                     <div class="rg-linha"><span class="rg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="14" y2="17"/></svg></span><span class="rg-nome">CDC</span><span class="rg-pts"><b>10</b> PONTOS</span></div>
                     <div class="rg-linha"><span class="rg-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/></svg></span><span class="rg-nome">CONSÓRCIO</span><span class="rg-pts"><b>10</b> PONTOS</span></div>
@@ -2406,6 +2406,7 @@ let dadosCarregados = false;
 const FILIAIS_EXCLUIDAS = ['1123', '1131', '1138', '1139', '1503'];
 const NPS_MINIMO_RANKING = 85;
 const CARTAO_META_TROFEU = 115;   // Troféu Global: cartão pontua a partir de 115%
+const SERVICO_META_TRIPLICADO = 110;   // Nov/26: Triplicadinha de serviço (Pula pra 10) e pontos do ranking a partir de 110%
 const PONTOS_MAX_TROFEU = 110;    // 100 base + 5 Venda Remota + 5 PMT Premiada
 const audioOuro = document.getElementById('som-vitoria');
 const CACHE_KEY = 'dadosTrofeu_Novembro_v1';
@@ -3313,10 +3314,10 @@ function calcularSimulacao(f) {
     const fatProj = (f.metaFaturamento || 0) * (pVendas / 100);
     const fatMax = Math.max(fatProj, f.metaFaturamento || 0);
 
-    // ---------- PULA PRA 10 (100% = 1X · 115% = TRIPLICADO 3X) ----------
+    // ---------- PULA PRA 10 (100% = 1X · 110% = TRIPLICADO 3X) ----------
     const basePula = faixaPula10(fatProj), basePulaMax = faixaPula10(fatMax);
     let pP10 = 0, txtP10 = 'NÃO ATIVADO', corP10 = '#ff5470';
-    if (pServ >= 115) { pP10 = basePula * 3; txtP10 = 'TRIPLICADO (3X)'; corP10 = '#34f5a0'; }
+    if (pServ >= SERVICO_META_TRIPLICADO) { pP10 = basePula * 3; txtP10 = 'TRIPLICADO (3X)'; corP10 = '#34f5a0'; }
     else if (pServ >= 100) { pP10 = basePula; txtP10 = 'ATINGIDO (1X)'; corP10 = '#34f5a0'; }
 
     // ---------- CARTÃO LUIZA (105% = 1X · 115% = DOBRADINHA 2X) ----------
@@ -3350,7 +3351,7 @@ function calcularSimulacao(f) {
     // ---------- Itens do potencial ----------
     const itens = [
         { id: 'nsl', ico: '🎯', nome: 'Prêmio NSL', regra: `6 metas no teto (124,5 pts × R$ ${moeda(vB)})`, atual: sNsl, max: nslMax },
-        { id: 'p10', ico: '🚀', nome: 'Pula pra 10 Triplicadinha', regra: `115% Pula 10 = 3 × R$ ${moeda(basePulaMax)}`, atual: pP10, max: basePulaMax * 3 },
+        { id: 'p10', ico: '🚀', nome: 'Pula pra 10 Triplicadinha', regra: `110% Pula 10 = 3 × R$ ${moeda(basePulaMax)}`, atual: pP10, max: basePulaMax * 3 },
         { id: 'cartao', ico: '💳', nome: 'Cartão Luiza + Dobradinha', regra: `115% cartão = 2 × R$ ${moeda(baseCartaoMax)}`, atual: pC, max: baseCartaoMax * 2 },
         { id: 'cdc', ico: '🏦', nome: 'Pula pra 15 CDC', regra: `100% venda CDC + FPP`, atual: pCdcPremio, max: PREMIO_CDC[porte] },
         { id: '3p', ico: '🛒', nome: 'Marketplace 3P', regra: `100% 3P + 100% 1P`, atual: pM, max: PREMIO_3P[porte] },
@@ -3464,7 +3465,7 @@ function obterHtmlCardSimulador(f) {
             <h4 class="titulo-bloco" style="color:${s.corPula10};">PULA PRA 10 · TRIPLICADINHA</h4>
             <div class="ind-grid-2">
                 <div class="item-ind-max">
-                    <div class="label-ind-max">GATILHO (100% = 1X · 115% = 3X)</div>
+                    <div class="label-ind-max">GATILHO (100% = 1X · 110% = 3X)</div>
                     <div class="val-ind-max" style="color:${s.corPula10};font-size:1.45em;">${s.txtPula10}</div>
                 </div>
                 <div class="item-ind-max">
@@ -3665,7 +3666,7 @@ function renderTabelaMetas(anim = false) {
             <td class="${f.nps >= NPS_MINIMO_RANKING ? 'val-bom' : 'val-ruim'}"><span class="animar-numero" data-valor="${f.nps}" data-tipo="nps">0</span></td>
             ${criarTdPerc(f.vendas, 100)}
             ${criarTdPerc(f.crescimento, 0)}
-            ${criarTdPerc(f.servicos110, 115)}
+            ${criarTdPerc(f.servicos110, SERVICO_META_TRIPLICADO)}
             ${criarTdPerc(f.cartao, CARTAO_META_TROFEU)}
             ${criarTdPerc(f.cdc, 100)}
             ${criarTdPerc(f.consorcio, 100)}
@@ -4106,7 +4107,7 @@ function renderizarTela(js) {
         let vVendas = (nf in mVd) ? mVd[nf] : l[3]; // CRESCIMENTO col. E (fallback: TROFEU col. D)
         if (getValorLimpoParaCor(vVendas) >= 100) pts += 25; 
         if (getValorLimpoParaCor(l[4]) >= 0) pts += 15; 
-        if (getValorLimpoParaCor(l[5]) >= 115) pts += 15; 
+        if (getValorLimpoParaCor(l[5]) >= SERVICO_META_TRIPLICADO) pts += 15;   // Nov/26: serviço 110%
         if (getValorLimpoParaCor(l[6]) >= CARTAO_META_TROFEU) pts += 15;   // Nov/26: 115% (dobradinha)
         if (getValorLimpoParaCor(l[7]) >= 100) pts += 10; 
         if (getValorLimpoParaCor(mC[nf] || 0) >= 100) pts += 10; 
