@@ -5329,6 +5329,22 @@ setTimeout(atualizarBannerSuspense, 0);
         .destaque-podio .destaque-global .dg-foto.dg-foto-q { width: min(100%, 44vh, 400px); aspect-ratio: 1 / 1; flex: 0 0 auto; }
         .destaque-podio .destaque-global .dg-nome + .dg-filial { font-size: clamp(.9rem, 3.8cqw, 1.4rem); }
         @media (max-width: 768px) { .destaque-podio .destaque-global .dg-foto.dg-foto-q { width: min(100%, 230px); } .destaque-podio .destaque-global { padding: 16px 14px 14px; } }
+
+        /* ===== PARCIAL DO ADMIN (imagem para o grupo) ===== */
+        .parcial-container { position: fixed; bottom: 24px; right: 24px; z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; }
+        .parcial-btn { display: flex; align-items: center; gap: 8px; height: 54px; padding: 0 22px; border-radius: 30px; border: none; cursor: pointer; color: #fff; font: 800 .95em var(--font); letter-spacing: 1px; background: linear-gradient(135deg, #25D366, #128C7E); box-shadow: 0 6px 20px rgba(37,211,102,.45); transition: transform .2s; }
+        .parcial-btn:hover { transform: scale(1.06); }
+        #parcial-modal { position: fixed; inset: 0; z-index: 99990; background: rgba(3,5,12,.88); backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; padding: 16px; }
+        #parcial-modal.show { display: flex; animation: fadeIn .25s ease; }
+        .pm-caixa { background: rgba(10,15,30,.97); border: 1px solid var(--line2); border-radius: 18px; width: 100%; max-width: 560px; max-height: 92vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,.6); }
+        .pm-topo { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+        .pm-topo b { font-family: var(--font-t); color: var(--gold); letter-spacing: .5px; }
+        .pm-topo button { background: none; border: none; color: var(--mut2); font-size: 1.7em; line-height: 1; cursor: pointer; }
+        .pm-imgs { overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 18px; }
+        .pm-imgs img { width: 100%; border-radius: 12px; display: block; border: 1px solid var(--line); }
+        .pm-acoes { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 10px; }
+        .pm-dica { color: var(--mut); font-size: .8em; text-align: center; padding: 0 18px 12px; }
+        @media (max-width:850px) { .parcial-container { bottom: 110px; right: 15px; } .parcial-btn { height: 48px; padding: 0 16px; } }
     </style>
 </head>
 <body>
@@ -5374,7 +5390,7 @@ setTimeout(atualizarBannerSuspense, 0);
         <input type="password" id="input-senha" class="input-login" placeholder="SENHA: ( ID ATRÁS DO CRACHÁ )" autocomplete="current-password">
         <button onclick="validarAcesso()" class="btn-top10" style="width:100%;">Entrar no Sistema</button>
         <div id="login-erro">Credenciais inválidas. Tente novamente.</div>
-        <div id="login-loading">Sincronizando Base de Dados... ⏳</div>
+        <div id="login-loading" style="display:none;">Verificando acesso... ⏳</div>
     </div>
 </div>
 
@@ -5704,6 +5720,28 @@ setTimeout(atualizarBannerSuspense, 0);
     </button>
 </div>
 
+<\!-- BOTÃO DE PARCIAL (só aparece para o administrador) -->
+<div class="parcial-container" id="parcial-container" data-html2canvas-ignore="true" style="display:none;">
+    <div class="share-menu" id="parcialMenu">
+        <button class="share-option" onclick="gerarParcial('cartao')"><span>💳</span> Parcial Cartão</button>
+        <button class="share-option" onclick="gerarParcial('super')"><span>🛡️</span> Parcial Super Protegido</button>
+        <button class="share-option" onclick="gerarParcial('sms')"><span>💬</span> Parcial SMS</button>
+        <button class="share-option" onclick="gerarParcial('pf')"><span>📄</span> Parcial Parcelamento de Fatura</button>
+        <button class="share-option" onclick="gerarParcial('cp')"><span>💰</span> Parcial Crédito Pessoal</button>
+        <button class="share-option" onclick="gerarParcial('colab')"><span>👥</span> Cartão por Colaborador</button>
+    </div>
+    <button class="parcial-btn" onclick="toggleParcialMenu()" title="Gerar parcial para o grupo">📊 <span>PARCIAL</span></button>
+</div>
+
+<div id="parcial-modal" onclick="if (event.target === this) fecharParcial()">
+    <div class="pm-caixa">
+        <div class="pm-topo"><b id="pm-titulo">Parcial</b><button type="button" onclick="fecharParcial()" aria-label="Fechar">&times;</button></div>
+        <div class="pm-acoes" style="margin:12px 0 4px;"><button class="share-option" id="pm-share" type="button"><span>📲</span> Compartilhar (WhatsApp)</button></div>
+        <div class="pm-dica">No computador: clique em <b>Copiar imagem</b> e cole no grupo do WhatsApp com Ctrl+V.</div>
+        <div class="pm-imgs" id="pm-imgs"></div>
+    </div>
+</div>
+
 <audio id="som-vitoria" src="senna.mp3" preload="auto"></audio>
 <audio id="som-prata" src="prata.mp3" preload="auto"></audio>
 <audio id="som-bronze" src="bronze.mp3" preload="auto"></audio>
@@ -5712,17 +5750,37 @@ setTimeout(atualizarBannerSuspense, 0);
     // ==========================================
     // COLE A SUA NOVA URL DO GOOGLE AQUI DENTRO DAS ASPAS:
     // ==========================================
-    const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbzBRZf6LW32tvD5P01YoEkDjqo1mqQfl4wVnZ_hDjdjiY7Pqbk474SYeu3jwU75L-ea/exec';
+    const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbzGi892woqnrMzdInH9iJXqnQG27_NYtXhiL24QKGydrDw1MhD8pWsIGbWkTj2kO5_k/exec';
 
     // ==========================================
     // VARIÁVEIS DE SEGURANÇA E ACESSO
     // ==========================================
-    let cofreCredenciais = [];
+    // As senhas NÃO vêm mais para o navegador: o login é conferido no Apps Script,
+    // que devolve um token. Os dados de colaboradores só chegam com esse token.
+    let tokenSessao = null;
+    let dadosPrivados = null;
+    let ultimoJsonPublico = null;
     let isMasterLogado = false;
     let seniorLogadoFilial = null;
     let seniorLogadoNome = null;
     let mapaNomesQuadro = {};
     let abaPendente = null;
+
+    // Escapa texto vindo da planilha antes de colocar em innerHTML
+    function esc(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+    // Avatar com iniciais gerado aqui mesmo (não envia o nome para sites de terceiros)
+    function avatarIniciais(nome, cor, tam) {
+        const ini = String(nome || '').trim().split(/\s+/).filter(Boolean).slice(0, 2).map(x => x[0]).join('').toUpperCase() || '?';
+        const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${tam}" height="${tam}" viewBox="0 0 100 100"><rect width="100" height="100" fill="#${cor}"/><text x="50" y="50" dy=".35em" text-anchor="middle" font-family="Inter,Arial,sans-serif" font-size="40" font-weight="700" fill="#0b0f19">${esc(ini)}</text></svg>`;
+        return 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+    }
+
+    async function chamarServidor(params) {
+        const resp = await fetch(URL_WEB_APP, { method: 'POST', body: new URLSearchParams(params) });
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        return resp.json();
+    }
 
     // ==========================================
     // EFEITOS VISUAIS (padrão Troféu Global)
@@ -6233,23 +6291,18 @@ document.addEventListener('keydown', e => {
         });
     }
 
-    // ==========================================
-    // REGISTRO DE ACESSO (mesmo padrão do painel dos gerentes)
-    // Envia 1 log por filial por sessão do navegador. O Master não é registrado.
-    // ==========================================
-    function registrarAcesso(filial, login) {
-        if (!filial || filial === 'ADMIN') return;
-        const chave = 'log_enviado_senior_' + filial;
-        try { if (sessionStorage.getItem(chave)) return; } catch (e) {}
-        try {
-            fetch(URL_WEB_APP, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `action=log_acesso&filial=${encodeURIComponent(filial)}&login=${encodeURIComponent(login || '')}&painel=SENIOR`
-            });
-            try { sessionStorage.setItem(chave, 'true'); } catch (e) {}
-        } catch (e) {}
+    // O registro de acesso (LOG_ACESSOS) agora é feito pelo próprio Apps Script no login.
+
+    // Busca os dados restritos (colaboradores) usando o token do login
+    async function carregarDadosPrivados() {
+        if (!tokenSessao) return;
+        const r = await chamarServidor({ action: 'dados', token: tokenSessao });
+        if (r.erro) {
+            if (r.erro === 'sessao_expirada') { showToast('Sua sessão expirou. Entre novamente.', 'erro'); fazerLogout(); }
+            return;
+        }
+        dadosPrivados = { ct_colaborador: r.ct_colaborador || [], quadro_vendedor: r.quadro_vendedor || [] };
+        if (ultimoJsonPublico) renderizarTela(ultimoJsonPublico);
     }
 
     function fazerLogout() {
@@ -6258,12 +6311,18 @@ document.addEventListener('keydown', e => {
         seniorLogadoFilial = null;
         seniorLogadoNome = null;
         abaPendente = null;
+        tokenSessao = null;
+        dadosPrivados = null;
+        filialAtiva = null;
+        if (ultimoJsonPublico) renderizarTela(ultimoJsonPublico);   // apaga os colaboradores da memória
 
         document.getElementById('share-container').style.display = 'flex';
         if(document.getElementById('btnTop10Geral')) {
             document.getElementById('btnTop10Geral').style.display = '';
         }
         document.getElementById('btn-logout').style.display = 'none';
+        document.getElementById('parcial-container').style.display = 'none';
+        document.getElementById('parcialMenu').classList.remove('show');
 
         document.querySelectorAll('.busca-ranking').forEach(input => input.value = '');
 
@@ -6287,7 +6346,9 @@ document.addEventListener('keydown', e => {
     }
 
     function trocarAba(nomeAba) {
-        if ((nomeAba === 'simulador' || nomeAba === 'metas' || nomeAba === 'colaborador') && !isMasterLogado && !seniorLogadoFilial) {
+        const precisaLogin = ((nomeAba === 'simulador' || nomeAba === 'metas' || nomeAba === 'colaborador') && !isMasterLogado && !seniorLogadoFilial)
+                          || (nomeAba === 'colaborador' && !tokenSessao);   // colaboradores só chegam com o token do login (admin do hub: entre com o usuário MASTER)
+        if (precisaLogin) {
             abaPendente = nomeAba;
             let overlay = document.getElementById('login-overlay');
             overlay.style.display = 'flex';
@@ -6305,10 +6366,13 @@ document.addEventListener('keydown', e => {
         document.getElementById('login-erro').style.display = 'none';
     }
 
-    function validarAcesso() {
+    let loginEmAndamento = false;
+    async function validarAcesso() {
+        if (loginEmAndamento) return;
         let usuarioDigitado = document.getElementById('input-usuario').value.trim().toUpperCase();
         let senhaDigitada = document.getElementById('input-senha').value.trim();
         let erroBox = document.getElementById('login-erro');
+        const loading = document.getElementById('login-loading');
 
         if(usuarioDigitado === '' || senhaDigitada === '') {
             erroBox.innerText = "Por favor, preencha o Login e a Senha.";
@@ -6327,37 +6391,46 @@ document.addEventListener('keydown', e => {
             isMasterLogado = true;
             seniorLogadoFilial = null;
             seniorLogadoNome = null;
+            document.getElementById('input-senha').value = '';
             const destinoMaster = abaPendente;   // guarda a aba antes do fecharLogin() limpar
             fecharLogin();
             if (visaoMetas === 'ranking') renderRankingIndicadores();
-
             document.getElementById('btn-logout').style.display = 'flex';
-
-            if(destinoMaster) {
-                executarTrocaAba(destinoMaster);
-                abaPendente = null;
-            }
+            document.getElementById('parcial-container').style.display = 'flex';
+            if (destinoMaster && !(destinoMaster === 'colaborador' && !tokenSessao)) executarTrocaAba(destinoMaster);
+            else if (destinoMaster) showToast('Para ver os colaboradores, entre com o usuário MASTER da planilha.', 'info', 5500);
+            abaPendente = null;
             return;
         }
 
-        let userAutorizado = cofreCredenciais.find(cred => cred.login === usuarioDigitado && cred.senha === senhaDigitada);
+        loginEmAndamento = true;
+        erroBox.style.display = 'none';
+        loading.style.display = 'block';
+        try {
+            // A senha é conferida no servidor (Apps Script), nunca aqui no navegador
+            const r = await chamarServidor({ action: 'login', login: usuarioDigitado, senha: senhaDigitada });
+            if (!r.ok) {
+                erroBox.innerText = r.erro || "Acesso Negado: Login ou Senha (ID) incorretos.";
+                erroBox.style.display = 'block';
+                return;
+            }
+            tokenSessao = r.token;
+            isMasterLogado = !!r.master;
+            seniorLogadoFilial = r.master ? null : String(r.filial);
+            seniorLogadoNome = r.master ? null : (r.nome || null);
+            document.getElementById('input-senha').value = '';
 
-        if (userAutorizado) {
-            isMasterLogado = false;
-            seniorLogadoFilial = userAutorizado.filial;
-            seniorLogadoNome = userAutorizado.representante ? (userAutorizado.nome || null) : null;
+            await carregarDadosPrivados();
 
-            registrarAcesso(userAutorizado.filial, userAutorizado.login);
-
-            aplicarTravaSenior();
-
-            if(document.getElementById('btnTop10Geral')) {
+            if (!isMasterLogado && document.getElementById('btnTop10Geral')) {
                 document.getElementById('btnTop10Geral').style.display = 'none';
             }
-
             document.getElementById('btn-logout').style.display = 'flex';
+            document.getElementById('parcial-container').style.display = isMasterLogado ? 'flex' : 'none';
+
             const destino = abaPendente;   // guarda a aba antes do fecharLogin() limpar
             fecharLogin();
+            aplicarTravaSenior();
             filtrarSelecao('metas'); filtrarSelecao('simul'); filtrarSelecao('colab');
             if (visaoMetas === 'ranking') renderRankingIndicadores();
 
@@ -6365,9 +6438,12 @@ document.addEventListener('keydown', e => {
                 executarTrocaAba(destino);
                 abaPendente = null;
             }
-        } else {
-            erroBox.innerText = "Acesso Negado: Login ou Senha (ID) incorretos.";
+        } catch (e) {
+            erroBox.innerText = "Não foi possível conectar ao servidor. Verifique a internet e tente novamente.";
             erroBox.style.display = 'block';
+        } finally {
+            loginEmAndamento = false;
+            loading.style.display = 'none';
         }
     }
 
@@ -6671,7 +6747,7 @@ document.addEventListener('keydown', e => {
         }
         // 2) texto tipo "Atualizado até 11/11" / "Data: 11/11/2026" nos cabeçalhos (2 primeiras linhas) das abas
         const hoje = new Date(); let melhor = null;
-        for (const k of ['ct_colaborador', 'cartao', 'nsl_senior', 'super', 'sms', 'cp', 'pf']) {
+        for (const k of ['datas_cabecalho', 'ct_colaborador', 'cartao', 'nsl_senior', 'super', 'sms', 'cp', 'pf']) {
             const aba = json && json[k]; if (!Array.isArray(aba)) continue;
             for (const linha of aba.slice(0, 2)) {
                 if (!Array.isArray(linha)) continue;
@@ -6711,6 +6787,9 @@ document.addEventListener('keydown', e => {
         return p;
     }
 
+    // META DO CARTÃO DO MÊS: % em cima da meta da planilha (troque aqui quando mudar a regra)
+    const META_CARTAO_PERC = 115;
+
     function mapearAbaIndicador(dadosAba, calcular105 = false) {
         let mapa = {};
         if (dadosAba && dadosAba.length > 0) {
@@ -6720,7 +6799,7 @@ document.addEventListener('keydown', e => {
                 let numF = limparChave(linha[0]);
                 if(numF) {
                     let metaOriginal = extrairNumero(linha[1]);
-                    let metaFinal = calcular105 ? Math.ceil(metaOriginal * 1.05) : metaOriginal;
+                    let metaFinal = calcular105 ? Math.ceil(metaOriginal * META_CARTAO_PERC / 100 - 1e-9) : metaOriginal;
                     let realizado = extrairNumero(linha[2]);
                     // compara com a meta como aparece na tela (4, não 3,9996)
                     let metaComparar = Math.round(metaOriginal * 100) / 100;
@@ -6732,55 +6811,33 @@ document.addEventListener('keydown', e => {
         return mapa;
     }
 
-    function renderizarTela(json) {
+    function renderizarTela(jsonPublico) {
+        // dados públicos (ranking) + dados restritos (colaboradores), se houver login
+        ultimoJsonPublico = jsonPublico;
+        const json = Object.assign({}, jsonPublico, dadosPrivados || {});
+
         let mapaCidades = {};
         mapaNomesQuadro = {};
-        cofreCredenciais = [];
-        let dadosQuadro = json.quadro || [];
 
-        if (dadosQuadro.length > 0) {
-            // REGRA DA LINHA EM BRANCO:
-            // acima da 1ª linha totalmente vazia = quem representa a loja (nome/foto no ranking)
-            // abaixo dela = só tem acesso ao painel (login), não aparece no ranking
-            let jaTeveDados = false;
-            let abaixoDaLinhaVazia = false;
-            for(let i = 1; i < dadosQuadro.length; i++) {
-                let linha = dadosQuadro[i];
-                let linhaVazia = !linha || linha.every(cel => cel === null || cel === undefined || String(cel).trim() === '');
-                if (linhaVazia) { if (jaTeveDados) abaixoDaLinhaVazia = true; continue; }
-                jaTeveDados = true;
-                const representante = !abaixoDaLinhaVazia;
-                if(linha && linha.length > 0) {
-                    let f = limparChave(linha[0]);
-                    let c = linha.length > 1 && linha[1] ? linha[1].toString().trim() : '';
-                    let urlFotoRaw = '';
-                    if (linha.length > 11 && linha[11]) urlFotoRaw = linha[11].toString().trim();
-                    else { for(let col = linha.length - 1; col >= 2; col--) { if(linha[col] && linha[col].toString().includes('drive.google.com')) { urlFotoRaw = linha[col].toString().trim(); break; } } }
-
-                    let novaFoto = obterUrlImagem(urlFotoRaw);
-                    if(f && !representante) {
-                        if (!mapaCidades[f] && c) mapaCidades[f] = { cidade: c, foto: '' };
-                    } else if(f) {
-                        if (!mapaCidades[f]) mapaCidades[f] = { cidade: c, foto: novaFoto };
-                        else { if (novaFoto && novaFoto !== '') mapaCidades[f].foto = novaFoto; if (c && c.trim() !== '') mapaCidades[f].cidade = c; }
-                    }
-
-                    let filialAlvo = f;
-                    let senhaID = linha.length > 3 && linha[3] ? String(linha[3]).trim() : '';
-                    let loginPortal = linha.length > 5 && linha[5] ? String(linha[5]).trim().toUpperCase() : 'NULL';
-                    if (loginPortal === '') loginPortal = 'NULL';
-
-                    let nomeQuadro = linha.length > 4 && linha[4] ? String(linha[4]).trim().toUpperCase() : '';
-                    if(filialAlvo !== '' && senhaID !== '') {
-                        cofreCredenciais.push({ filial: filialAlvo, login: loginPortal, senha: senhaID, nome: nomeQuadro, representante: representante });
-                        if (nomeQuadro && representante) {
-                            if (!mapaNomesQuadro[filialAlvo]) mapaNomesQuadro[filialAlvo] = [];
-                            if (!mapaNomesQuadro[filialAlvo].includes(nomeQuadro)) mapaNomesQuadro[filialAlvo].push(nomeQuadro);
-                        }
-                    }
-                }
+        // QUADRO já vem do servidor sem senha/login (a regra da linha em branco é aplicada lá):
+        // representante = nome/foto no ranking; não representante = só a cidade
+        (json.quadro_publico || []).forEach(q => {
+            const f = limparChave(q.filial);
+            if (!f) return;
+            const c = q.cidade ? String(q.cidade).trim() : '';
+            if (!q.representante) {
+                if (!mapaCidades[f] && c) mapaCidades[f] = { cidade: c, foto: '' };
+                return;
             }
-        }
+            const novaFoto = obterUrlImagem(q.foto);
+            if (!mapaCidades[f]) mapaCidades[f] = { cidade: c, foto: novaFoto };
+            else { if (novaFoto) mapaCidades[f].foto = novaFoto; if (c) mapaCidades[f].cidade = c; }
+            const nomeQuadro = q.nome ? String(q.nome).trim().toUpperCase() : '';
+            if (nomeQuadro) {
+                if (!mapaNomesQuadro[f]) mapaNomesQuadro[f] = [];
+                if (!mapaNomesQuadro[f].includes(nomeQuadro)) mapaNomesQuadro[f].push(nomeQuadro);
+            }
+        });
 
         let mapaFpp = {};
         if (json.fpp && json.fpp.length > 0) {
@@ -6954,20 +7011,26 @@ document.addEventListener('keydown', e => {
             let primeiros = s.nomesQuadro.map(x => formatarNomeWhats(x.split(' ')[0]));
             let txt = primeiros.length === 2 ? primeiros.join(' e ') : primeiros.slice(0, -1).join(', ') + ' e ' + primeiros[primeiros.length - 1];
             elNome.classList.add('nome-multi');
-            elNome.innerHTML = txt;
+            elNome.textContent = txt;
             n = primeiros.join(' ');
         } else {
             elNome.classList.remove('nome-multi');
-            elNome.innerHTML = `<span class="nome-desk">${n}</span><span class="nome-mob">${n.split(' ')[0]}</span>`;
+            elNome.innerHTML = `<span class="nome-desk">${esc(n)}</span><span class="nome-mob">${esc(n.split(' ')[0])}</span>`;
         }
         document.getElementById('filial-' + p).innerText = `FL ${s.numFilial}${s.cidade ? ' - ' + s.cidade.toUpperCase() : ''}`;
         document.getElementById('pontos-' + p).innerText = s.pontos.toFixed(1) + ' pts';
-        const fb = `https://ui-avatars.com/api/?name=${encodeURIComponent(n)}&background=${cor}&color=0b0f19&size=${tam}&bold=true`;
+        const fb = avatarIniciais(n, cor, tam);
         let imgUrl = s.foto;
-        if (!imgUrl || !imgUrl.startsWith('http')) imgUrl = fb;
+        if (!imgUrl || !/^https:\/\//i.test(imgUrl)) imgUrl = fb;   // só aceita links https
         const av = document.getElementById('avatar-' + p);
         av.style.display = 'flex';
-        av.innerHTML = `<img src="${imgUrl}" crossorigin="anonymous" alt="${p}º Lugar" onerror="this.onerror=null;this.src='${fb}';">`;
+        av.innerHTML = '';
+        const img = document.createElement('img');
+        img.crossOrigin = 'anonymous';
+        img.alt = p + 'º Lugar';
+        img.onerror = function () { this.onerror = null; this.src = fb; };
+        img.src = imgUrl;
+        av.appendChild(img);
     }
 
     function popularSelectFiliais(lista) {
@@ -6981,7 +7044,7 @@ document.addEventListener('keydown', e => {
             <div class="item-lista">
                 <span class="posicao-lista">${i + 1}º</span>
                 <div class="nome-wrap">
-                    <span class="nome-filial">${textoFilial}</span>
+                    <span class="nome-filial">${esc(textoFilial)}</span>
                     <div class="barra"><i style="width:${pct.toFixed(1)}%"></i></div>
                 </div>
                 <span class="pontos-filial">${lista[i].pontos.toFixed(1)} pts</span>
@@ -6993,7 +7056,7 @@ document.addEventListener('keydown', e => {
         listaFiliais.forEach(s => {
             let textoOpcao = `FL ${s.numFilial}`;
             if(s.cidade) textoOpcao += ` - ${s.cidade.toUpperCase()}`;
-            let itemTemplate = `<div class="item-lista" onclick="abrirContexto('THIS_CONTEXT', '${s.numFilial}')"><div class="nome-wrap"><span class="nome-filial">${textoOpcao}</span></div><span class="acessar-lista">Acessar ➔</span></div>`;
+            let itemTemplate = `<div class="item-lista" onclick="abrirContexto('THIS_CONTEXT', '${s.numFilial}')"><div class="nome-wrap"><span class="nome-filial">${esc(textoOpcao)}</span></div><span class="acessar-lista">Acessar ➔</span></div>`;
             htmlOpcoesMetas += itemTemplate.replace('THIS_CONTEXT', 'metas');
             htmlOpcoesSimul += itemTemplate.replace('THIS_CONTEXT', 'simul');
             htmlOpcoesColab += itemTemplate.replace('THIS_CONTEXT', 'colab');
@@ -7082,7 +7145,7 @@ document.addEventListener('keydown', e => {
             const minha = seniorLogadoFilial && !isMasterLogado && s.numFilial === seniorLogadoFilial;
             const cls = [(rkDir === 'desc' && pos <= 3) ? 'top3' : '', minha ? 'minha' : ''].join(' ').trim();
             const titulo = rkOrdem === 'pontos' ? '' : ` title="${posOficial[s.numFilial]}º no ranking geral"`;
-            const cidadeRk = s.cidade ? `<span class="rk-cid"><span class="rk-sep"> - </span>${s.cidade.toUpperCase()}</span>` : '';
+            const cidadeRk = s.cidade ? `<span class="rk-cid"><span class="rk-sep"> - </span>${esc(s.cidade.toUpperCase())}</span>` : '';
             linhas += `<tr class="${cls}"><td${titulo}><span class="pos">${pos}º</span>FL ${s.numFilial}${cidadeRk}</td>${RK_COLUNAS.map(c => rkCelula(c, s)).join('')}</tr>`;
         });
 
@@ -7119,9 +7182,9 @@ document.addEventListener('keydown', e => {
     function abrirDetalhe(numFilial) {
         filialAtiva = numFilial; const dadosS = listaCompletaSeniores.find(s => s.numFilial === numFilial); if(!dadosS) return;
         document.getElementById('topo-geral').style.display = 'none'; document.getElementById('tela-selecao').style.display = 'none'; document.getElementById('tela-detalhe').style.display = 'block';
-        let tituloDaCidade = dadosS.cidade ? dadosS.cidade.toUpperCase() : 'CIDADE NÃO INFORMADA';
+        let tituloDaCidade = esc(dadosS.cidade ? dadosS.cidade.toUpperCase() : 'CIDADE NÃO INFORMADA');
         const sub = t => `<br><span style="font-size: 0.78em; font-weight: 600; font-family: var(--font); opacity:.85;">${t}</span>`;
-        document.getElementById('cardDetalheMax').innerHTML = `<div class="detalhe-header"><h3 class="detalhe-nome">${tituloDaCidade}</h3><div class="detalhe-cidade">FL ${dadosS.numFilial}</div><div class="detalhe-senior">👤 ${nomeExibicao(dadosS)}</div></div><div class="grid-blocos-indicadores">${criarBlocoHTML('💳 CARTÃO' + sub('(META 105%) 25 PTS'), '#22d3ee', dadosS.detCartao, 'META', '', false)}${criarBlocoHTML('📄 PARCELAMENTO DE FATURA' + sub('20 PTS'), '#34f5a0', dadosS.detPf, 'META', '', true)}${criarBlocoHTML('🛡️ SUPER PROTEGIDO' + sub('15 PTS'), '#ffd24a', dadosS.detSuper, 'META', '', false)}${criarBlocoHTML('💬 SMS' + sub('10 PTS'), '#ff9f1c', dadosS.detSms, 'META', '', false)}${criarBlocoHTML('💰 CRÉDITO PESSOAL' + sub('10 PTS'), '#ff5470', dadosS.detCp, 'META', '', true)}${criarBlocoVenda1P('📦 VENDA 1P' + sub('10 PTS'), '#f5a524', dadosS.venda1p)}${criarBlocoNPS('😊 NPS' + sub('10 PTS (ATENDIMENTO)'), '#a78bfa', dadosS.nps)}${criarBlocoFPP('⭐ FPP BÔNUS 20%' + sub('(Cobrança CDC)'), '#ff9f1c', dadosS.detFpp)}</div>`;
+        document.getElementById('cardDetalheMax').innerHTML = `<div class="detalhe-header"><h3 class="detalhe-nome">${tituloDaCidade}</h3><div class="detalhe-cidade">FL ${dadosS.numFilial}</div><div class="detalhe-senior">👤 ${esc(nomeExibicao(dadosS))}</div></div><div class="grid-blocos-indicadores">${criarBlocoHTML('💳 CARTÃO' + sub(`(META ${META_CARTAO_PERC}%) 25 PTS`), '#22d3ee', dadosS.detCartao, 'META', '', false)}${criarBlocoHTML('📄 PARCELAMENTO DE FATURA' + sub('20 PTS'), '#34f5a0', dadosS.detPf, 'META', '', true)}${criarBlocoHTML('🛡️ SUPER PROTEGIDO' + sub('15 PTS'), '#ffd24a', dadosS.detSuper, 'META', '', false)}${criarBlocoHTML('💬 SMS' + sub('10 PTS'), '#ff9f1c', dadosS.detSms, 'META', '', false)}${criarBlocoHTML('💰 CRÉDITO PESSOAL' + sub('10 PTS'), '#ff5470', dadosS.detCp, 'META', '', true)}${criarBlocoVenda1P('📦 VENDA 1P' + sub('10 PTS'), '#f5a524', dadosS.venda1p)}${criarBlocoNPS('😊 NPS' + sub('10 PTS (ATENDIMENTO)'), '#a78bfa', dadosS.nps)}${criarBlocoFPP('⭐ FPP BÔNUS 20%' + sub('(Cobrança CDC)'), '#ff9f1c', dadosS.detFpp)}</div>`;
         window.scrollTo({ top: 0 });
         iniciarAnimacoes();
     }
@@ -7162,7 +7225,7 @@ document.addEventListener('keydown', e => {
 
     function criarBlocoColaboradorHTML(colab, isGlobal = false) {
         let percValue = parseFloat(colab.proj) || 0; let prog = getProgressStyle(percValue); let emoji = '🏃'; if (percValue >= 120) emoji = '🔥'; else if (percValue >= 100) emoji = '⭐';
-        let nomeTitle = isGlobal ? colab.nome : `${emoji} ${colab.nome}`;
+        let nomeTitle = isGlobal ? colab.nome : `${emoji} ${esc(colab.nome)}`;
         return `<div class="bloco-indicador"><h4 class="titulo-bloco" style="color: #ffffff; margin-bottom: 15px; font-size: 1.05em; text-align: left; padding-left: 12px; border-left: 4px solid var(--cyan);">${nomeTitle}</h4><div class="ind-grid-3"><div class="item-ind-max"><div class="label-ind-max">PRÉ APROVADO</div><div class="val-ind-max animar-numero" data-valor="${colab.preAprovado}" data-tipo="num" style="color: #ffffff;">0</div></div><div class="item-ind-max"><div class="label-ind-max">META</div><div class="val-ind-max animar-numero" data-valor="${colab.meta}" data-tipo="num" style="color: #ffffff;">0</div></div><div class="item-ind-max"><div class="label-ind-max">REALIZADO</div><div class="val-ind-max animar-numero" data-valor="${colab.realizado}" data-tipo="num" style="color: #ffffff;">0</div></div></div><div style="margin-top: 15px; text-align: center;"><div class="label-ind-max" style="margin-bottom: 5px;">PROJEÇÃO DE ATINGIMENTO</div><div class="progress-bg"><div class="progress-fill ${prog.classe}" data-target-width="${Math.min(percValue, 100)}%" style="width: 0%; background: ${prog.cor}; box-shadow: 0 0 10px ${prog.cor};"></div><div class="progress-text animar-numero" data-valor="${colab.proj}" data-tipo="perc" data-quasela="${prog.isQuase}" style="color: ${prog.isQuase ? 'white' : ''}">0%</div></div></div></div>`;
     }
 
@@ -7171,18 +7234,18 @@ document.addEventListener('keydown', e => {
         let todosColaboradores = [];
         for (let filial in mapaColaboradoresGlobais) { let cidade = "N/I"; let dadosSenior = listaCompletaSeniores.find(s => s.numFilial === filial); if (dadosSenior && dadosSenior.cidade) cidade = dadosSenior.cidade; mapaColaboradoresGlobais[filial].forEach(colab => { todosColaboradores.push({ ...colab, filialInfo: `FL ${filial} - ${cidade}` }); }); }
         todosColaboradores.sort((a, b) => b.proj - a.proj); let top10 = todosColaboradores.slice(0, 10);
-        let html = ''; top10.forEach((c, index) => { let pos = index + 1; let medalha = pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : `${pos}º`; let colabFake = { ...c, nome: `${medalha} ${c.nome} <span style="font-size: 0.7em; color:var(--mut); margin-left: 10px; font-family: var(--font);">(${c.filialInfo})</span>` }; html += criarBlocoColaboradorHTML(colabFake, true); });
+        let html = ''; top10.forEach((c, index) => { let pos = index + 1; let medalha = pos === 1 ? '🥇' : pos === 2 ? '🥈' : pos === 3 ? '🥉' : `${pos}º`; let colabFake = { ...c, nome: `${medalha} ${esc(c.nome)} <span style="font-size: 0.7em; color:var(--mut); margin-left: 10px; font-family: var(--font);">(${esc(c.filialInfo)})</span>` }; html += criarBlocoColaboradorHTML(colabFake, true); });
         document.getElementById('cardDetalheColab').innerHTML = `<div class="detalhe-header"><h3 class="detalhe-nome">🏆 TOP 10 COLABORADORES CARTÃO LUIZA 🏆</h3><div class="detalhe-cidade">REGIONAL CAMPO BOM</div></div><div style="display: flex; flex-direction: column; gap: 18px;">${html}</div>`;
         window.scrollTo({ top: 0 });
         iniciarAnimacoes();
     }
 
     function abrirDetalheColab(numFilial) {
-        filialAtiva = numFilial; const dadosS = listaCompletaSeniores.find(s => s.numFilial === numFilial); let tituloDaCidade = dadosS && dadosS.cidade ? dadosS.cidade.toUpperCase() : 'CIDADE NÃO INFORMADA';
+        filialAtiva = numFilial; const dadosS = listaCompletaSeniores.find(s => s.numFilial === numFilial); let tituloDaCidade = esc(dadosS && dadosS.cidade ? dadosS.cidade.toUpperCase() : 'CIDADE NÃO INFORMADA');
         document.getElementById('topo-geral').style.display = 'none'; document.getElementById('tela-selecao-colab').style.display = 'none'; document.getElementById('tela-detalhe-colab').style.display = 'block';
         let htmlColaboradores = ''; let listaColab = mapaColaboradoresGlobais[numFilial];
         if (listaColab && listaColab.length > 0) { listaColab.sort((a, b) => b.proj - a.proj); listaColab.forEach(colab => { htmlColaboradores += criarBlocoColaboradorHTML(colab); }); } else { htmlColaboradores = `<div style="text-align:center; padding: 40px; color: var(--mut);">Nenhum colaborador encontrado para esta filial no momento.</div>`; }
-        document.getElementById('cardDetalheColab').innerHTML = `<div class="detalhe-header"><h3 class="detalhe-nome">${tituloDaCidade}</h3><div class="detalhe-cidade">FL ${numFilial} - CARTÃO POR COLABORADOR</div>${dadosS ? `<div class="detalhe-senior">👤 ${nomeExibicao(dadosS)}</div>` : ''}<button class="btn-whatsapp-equipe" onclick="compartilharEquipeWhatsApp('${numFilial}')"><svg width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M12.01 2.014c-5.465 0-9.895 4.43-9.895 9.895 0 1.745.454 3.447 1.316 4.954L2.014 22.01l5.282-1.385a9.854 9.854 0 0 0 4.714 1.196h.004c5.463 0 9.894-4.43 9.894-9.894 0-2.65-1.03-5.143-2.905-7.017A9.851 9.851 0 0 0 12.01 2.014zm5.42 14.28c-.227.639-1.316 1.233-1.815 1.306-.475.069-1.085.127-3.328-.801-2.73-1.13-4.48-3.92-4.615-4.1-.137-.181-1.103-1.467-1.103-2.798 0-1.332.693-1.986.942-2.26.248-.273.543-.341.724-.341.18 0 .362.003.52.01.183.008.428-.073.67.51.249.59.847 2.062.923 2.213.076.151.123.326.031.508-.09.182-.136.295-.272.453-.136.159-.286.342-.407.476-.137.152-.284.32-.122.598.163.28 .724 1.197 1.559 1.942 1.077.96 1.97 1.258 2.25 1.394.278.136.442.114.607-.068.164-.182.71-8.19.897-.109.188.272.76.012 1.168.212.408.2.338 1.487.338 1.487s.035.181-.19.82z"/></svg>Enviar no Grupo da Loja</button></div><div style="display: flex; flex-direction: column; gap: 18px;">${htmlColaboradores}</div>`;
+        document.getElementById('cardDetalheColab').innerHTML = `<div class="detalhe-header"><h3 class="detalhe-nome">${tituloDaCidade}</h3><div class="detalhe-cidade">FL ${numFilial} - CARTÃO POR COLABORADOR</div>${dadosS ? `<div class="detalhe-senior">👤 ${esc(nomeExibicao(dadosS))}</div>` : ''}<button class="btn-whatsapp-equipe" onclick="compartilharEquipeWhatsApp('${numFilial}')"><svg width="20" height="20" viewBox="0 0 24 24" fill="white" xmlns="http://www.w3.org/2000/svg"><path d="M12.01 2.014c-5.465 0-9.895 4.43-9.895 9.895 0 1.745.454 3.447 1.316 4.954L2.014 22.01l5.282-1.385a9.854 9.854 0 0 0 4.714 1.196h.004c5.463 0 9.894-4.43 9.894-9.894 0-2.65-1.03-5.143-2.905-7.017A9.851 9.851 0 0 0 12.01 2.014zm5.42 14.28c-.227.639-1.316 1.233-1.815 1.306-.475.069-1.085.127-3.328-.801-2.73-1.13-4.48-3.92-4.615-4.1-.137-.181-1.103-1.467-1.103-2.798 0-1.332.693-1.986.942-2.26.248-.273.543-.341.724-.341.18 0 .362.003.52.01.183.008.428-.073.67.51.249.59.847 2.062.923 2.213.076.151.123.326.031.508-.09.182-.136.295-.272.453-.136.159-.286.342-.407.476-.137.152-.284.32-.122.598.163.28 .724 1.197 1.559 1.942 1.077.96 1.97 1.258 2.25 1.394.278.136.442.114.607-.068.164-.182.71-8.19.897-.109.188.272.76.012 1.168.212.408.2.338 1.487.338 1.487s.035.181-.19.82z"/></svg>Enviar no Grupo da Loja</button></div><div style="display: flex; flex-direction: column; gap: 18px;">${htmlColaboradores}</div>`;
         window.scrollTo({ top: 0 });
         iniciarAnimacoes();
     }
@@ -7192,7 +7255,7 @@ document.addEventListener('keydown', e => {
     function abrirDetalheSimulador(numFilial) {
         filialAtiva = numFilial; const dadosS = listaCompletaSeniores.find(s => s.numFilial === numFilial); if(!dadosS) return;
         document.getElementById('topo-geral').style.display = 'none'; document.getElementById('tela-selecao-simul').style.display = 'none'; document.getElementById('tela-detalhe-simul').style.display = 'block';
-        let tituloDaCidade = dadosS.cidade ? dadosS.cidade.toUpperCase() : 'CIDADE NÃO INFORMADA'; let nomeDoSenior = nomeExibicao(dadosS);
+        let tituloDaCidade = esc(dadosS.cidade ? dadosS.cidade.toUpperCase() : 'CIDADE NÃO INFORMADA'); let nomeDoSenior = esc(nomeExibicao(dadosS));
         let pCartao = calcPerc(dadosS.detCartao.proj); let pPf = calcPerc(dadosS.detPf.proj); let pSuper = calcPerc(dadosS.detSuper.proj); let pCp = calcPerc(dadosS.detCp.proj); let pSms = calcPerc(dadosS.detSms.proj); let pVenda = calcPerc(dadosS.venda1p);
         let mCartao = getMultiplicador(pCartao); let mPf = getMultiplicador(pPf); let mSuper = getMultiplicador(pSuper); let mCp = getMultiplicador(pCp); let mSms = getMultiplicador(pSms); let mVenda = getMultiplicador(pVenda);
         let ptsCartao = 25 * mCartao; let ptsPf = 20 * mPf; let ptsSuper = 15 * mSuper; let ptsCp = 10 * mCp; let ptsSms = 10 * mSms; let ptsVenda = 10 * mVenda; let ptsNps = dadosS.ptsNps || 0;
@@ -7286,13 +7349,16 @@ document.addEventListener('keydown', e => {
     function fecharDetalheSimulador() { filialAtiva = null; document.getElementById('tela-detalhe-simul').style.display = 'none'; document.getElementById('topo-geral').style.display = 'block'; document.getElementById('tela-selecao-simul').style.display = 'block'; document.querySelectorAll('.busca-ranking').forEach(input => { input.value = ''; }); filtrarSelecao('simul'); }
 
     async function carregarDados(tentativas = 3) {
-        const memoriaLocal = localStorage.getItem('dadosSenior_Memoria_v98');
+        // apaga o cache antigo, que guardava senhas e dados de colaboradores
+        try { localStorage.removeItem('dadosSenior_Memoria_v98'); } catch (e) {}
+        let memoriaLocal = null;
+        try { memoriaLocal = localStorage.getItem('dadosSenior_Publico_v99'); } catch (e) {}
         if (memoriaLocal) {
             try {
                 renderizarTela(JSON.parse(memoriaLocal));
                 document.getElementById('texto-carregando').innerText = 'Sincronizando...';
             } catch (e) {
-                localStorage.removeItem('dadosSenior_Memoria_v98');
+                localStorage.removeItem('dadosSenior_Publico_v99');
             }
         }
 
@@ -7323,7 +7389,7 @@ document.addEventListener('keydown', e => {
                 throw new Error("Aba Sênior não encontrada ou vazia!");
             }
 
-            localStorage.setItem('dadosSenior_Memoria_v98', JSON.stringify(json));
+            try { localStorage.setItem('dadosSenior_Publico_v99', JSON.stringify(json)); } catch (e) {}
             renderizarTela(json);
             document.getElementById('texto-carregando').innerText = '';
             document.getElementById('aviso-erro').style.display = 'none';
@@ -7343,7 +7409,7 @@ document.addEventListener('keydown', e => {
                 } else {
                     const elementoAviso = document.getElementById('aviso-erro');
                     elementoAviso.style.display = 'block';
-                    elementoAviso.innerHTML = '⚠️ Erro de Conexão: ' + erro.message;
+                    elementoAviso.innerText = '⚠️ Erro de Conexão: ' + erro.message;
                     document.getElementById('texto-carregando').innerText = '';
                     document.getElementById('lista-selecao-ranking').innerHTML = '';
                 }
@@ -7409,12 +7475,265 @@ document.addEventListener('keydown', e => {
             showToast("Ocorreu um erro ao gerar a imagem.", 'erro');
         }
     }
+
+    // ==========================================
+    // PARCIAL DO ADMIN — gera a imagem do indicador para mandar no grupo
+    // ==========================================
+    const PARCIAL_TIPOS = {
+        cartao: { nome: 'Cartão',                 l2: 'CARTÃO',          det: s => s.detCartao, mon: false, metaSub: `META ${META_CARTAO_PERC}%` },
+        super:  { nome: 'Super Protegido',        l2: 'SUPER PROTEGIDO', det: s => s.detSuper,  mon: false },
+        sms:    { nome: 'SMS',                    l2: 'SMS',             det: s => s.detSms,    mon: false },
+        pf:     { nome: 'Parcelamento de Fatura', l2: 'PARC. FATURA',    det: s => s.detPf,     mon: true },
+        cp:     { nome: 'Crédito Pessoal',        l2: 'CRÉDITO PESSOAL', det: s => s.detCp,     mon: true },
+        colab:  { nome: 'Cartão por Colaborador', l1: 'CARTÃO POR', l2: 'COLABORADOR' }
+    };
+    const P_W = 1080, P_LINHAS_PAG = 40, P_ROW = 48, P_HEAD = 70, P_TOPO_TABELA = 320;
+    let parcialArquivos = [];
+
+    function toggleParcialMenu() { document.getElementById('parcialMenu').classList.toggle('show'); }
+    function fecharParcial() { document.getElementById('parcial-modal').classList.remove('show'); }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') fecharParcial(); });
+
+    // ---- utilitários de desenho ----
+    function pRR(ctx, x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+    function pFonte(ctx, peso, tam, fam) { ctx.font = `${peso} ${tam}px ${fam === 'Sora' ? 'Sora, Inter' : 'Inter'}, 'Segoe UI', Arial, sans-serif`; }
+    function pEsp(ctx, px) { if ('letterSpacing' in ctx) ctx.letterSpacing = px + 'px'; }
+    function pTexto(ctx, txt, x, y, o = {}) {
+        pFonte(ctx, o.peso || 700, o.tam || 24, o.fam); ctx.fillStyle = o.cor || '#fff';
+        ctx.textAlign = o.alinhar || 'left'; ctx.textBaseline = 'middle';
+        let t = String(txt);
+        if (o.maxW && ctx.measureText(t).width > o.maxW) { while (t.length > 1 && ctx.measureText(t + '…').width > o.maxW) t = t.slice(0, -1); t = t.trimEnd() + '…'; }
+        ctx.fillText(t, x, y);
+    }
+    function pTitulo(ctx, txt, x, y, tamMax, paradas, maxW) {
+        let tam = tamMax; pFonte(ctx, 800, tam, 'Sora');
+        while (ctx.measureText(txt).width > maxW && tam > 40) { tam -= 2; pFonte(ctx, 800, tam, 'Sora'); }
+        const g = ctx.createLinearGradient(0, y - tam * .8, 0, y + tam * .1); paradas.forEach(([o, c]) => g.addColorStop(o, c));
+        ctx.save(); ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+        ctx.shadowColor = 'rgba(0,0,0,.65)'; ctx.shadowBlur = 20; ctx.shadowOffsetY = 6;
+        ctx.fillStyle = g; ctx.fillText(txt, x, y); ctx.restore();
+    }
+    function pValor(ctx, v, mon, cx, y, cor = '#fff', tam = 26) {
+        const num = mon ? Math.round(Number(v) || 0).toLocaleString('pt-BR') : (Number(v) || 0).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+        ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+        pFonte(ctx, 800, tam); const wN = ctx.measureText(num).width;
+        let wP = 0; if (mon) { pFonte(ctx, 700, Math.round(tam * .62)); wP = ctx.measureText('R$ ').width; }
+        let x = cx - (wN + wP) / 2;
+        if (mon) { ctx.fillStyle = 'rgba(255,255,255,.7)'; ctx.fillText('R$ ', x, y + 2); x += wP; }
+        pFonte(ctx, 800, tam); ctx.fillStyle = cor; ctx.fillText(num, x, y);
+    }
+    function pPill(ctx, txt, cx, y, cor, tam = 23) {
+        pFonte(ctx, 900, tam); const w = Math.max(118, ctx.measureText(txt).width + 32), h = 34;
+        pRR(ctx, cx - w / 2, y - h / 2, w, h, 17); ctx.fillStyle = cor + '2e'; ctx.fill(); ctx.strokeStyle = cor; ctx.lineWidth = 2; ctx.stroke();
+        ctx.fillStyle = cor; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(txt, cx, y + 1);
+    }
+    const pCorPerc = p => p >= 100 ? '#34f5a0' : (p >= 90 ? '#ff9f1c' : '#ff5470');
+    const pPerc = p => (Number(p) || 0).toFixed(1).replace('.', ',') + '%';
+
+    function imagemTrofeu() {
+        return new Promise(res => {
+            try {
+                const svg = document.querySelector('#primeiro-lugar .trofeu-lado svg'); if (!svg) return res(null);
+                const c = svg.cloneNode(true); c.setAttribute('width', '240'); c.setAttribute('height', '288'); c.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                const img = new Image(); img.onload = () => res(img); img.onerror = () => res(null);
+                img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(new XMLSerializer().serializeToString(c));
+            } catch (e) { res(null); }
+        });
+    }
+
+    // ---- moldura: fundo, título, troféu, faixa do mês, caixa da tabela e rodapé ----
+    function pMoldura(ctx, H, cfg, pagina, totalPag, trofeu, tH) {
+        ctx.fillStyle = '#05060c'; ctx.fillRect(0, 0, P_W, H);
+        [[0, 0, 'rgba(214,20,90,.55)'], [P_W, 0, 'rgba(10,120,130,.42)'], [0, H, 'rgba(110,20,170,.5)'], [P_W, H, 'rgba(214,20,90,.3)']].forEach(([x, y, c]) => {
+            const g = ctx.createRadialGradient(x, y, 0, x, y, P_W * .85); g.addColorStop(0, c); g.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = g; ctx.fillRect(0, 0, P_W, H);
+        });
+        const cores = ['#ff2d8a', '#22d3ee', '#ffd24a', '#9b00e8', '#34f5a0', '#ff8c00'];
+        let semente = 7; const rnd = () => (semente = (semente * 9301 + 49297) % 233280) / 233280;
+        for (let i = 0; i < 90; i++) {
+            const x = rnd() * P_W, y = rnd() * H, r = 2 + rnd() * 4, a = .45 + rnd() * .55;
+            if (y > P_TOPO_TABELA - 20 && y < P_TOPO_TABELA + tH + 20 && x > 30 && x < P_W - 30) continue;
+            if (y > 40 && y < 300 && x < 790) continue;   // não cai em cima do título
+            if (y > P_TOPO_TABELA + tH + 15 && y < P_TOPO_TABELA + tH + 160 && x > 220 && x < 860) continue;   // nem no rodapé
+            ctx.globalAlpha = a; ctx.fillStyle = cores[i % cores.length]; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+
+        if (trofeu) {
+            const g = ctx.createRadialGradient(905, 175, 10, 905, 175, 170); g.addColorStop(0, 'rgba(255,210,74,.32)'); g.addColorStop(1, 'rgba(255,210,74,0)');
+            ctx.fillStyle = g; ctx.fillRect(700, 0, 380, 380);
+            ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.8)'; ctx.shadowBlur = 24; ctx.shadowOffsetY = 10; ctx.drawImage(trofeu, 810, 50, 190, 228); ctx.restore();
+        }
+        pTitulo(ctx, cfg.l1 || 'PARCIAL', 56, 160, 104, [[0, '#ffffff'], [.55, '#d4d4dc'], [1, '#6a6a75']], 715);
+        pTitulo(ctx, cfg.l2, 56, 268, 104, [[0, '#fff6c2'], [.45, '#ffd24a'], [1, '#c27a0a']], 715);
+
+        // caixa da tabela
+        pRR(ctx, 40, P_TOPO_TABELA, P_W - 80, tH, 26); ctx.fillStyle = 'rgba(8,10,22,.84)'; ctx.fill();
+        const gt = ctx.createLinearGradient(40, P_TOPO_TABELA, P_W - 40, P_TOPO_TABELA + tH);
+        gt.addColorStop(0, '#22d3ee'); gt.addColorStop(.35, '#9b00e8'); gt.addColorStop(.7, '#ff2d8a'); gt.addColorStop(1, '#ffd24a');
+        ctx.strokeStyle = gt; ctx.lineWidth = 3; ctx.stroke();
+
+        // rodapé: data da parcial + faixa "BLACK DAS BLACK'S · MÊS / ANO" (centralizados)
+        const yRod = P_TOPO_TABELA + tH;
+        const d = diasProjecao(), dd = String(d.ref.getDate()).padStart(2, '0'), mm = String(d.ref.getMonth() + 1).padStart(2, '0');
+        pTexto(ctx, `📅 PARCIAL ATÉ ${dd}/${mm}${totalPag > 1 ? `  ·  PÁG. ${pagina}/${totalPag}` : ''}`, P_W / 2, yRod + 46, { tam: 24, peso: 800, cor: '#c9d2ea', alinhar: 'center' });
+        const p1 = "BLACK DAS BLACK'S  ·  ", p2 = `${meses[mesTitulo]} / ${anoTitulo}`;
+        pFonte(ctx, 800, 25); pEsp(ctx, 3);
+        const w1 = ctx.measureText(p1).width, w2 = ctx.measureText(p2).width, wF = w1 + w2 + 64, xF = (P_W - wF) / 2, yF = yRod + 84;
+        pRR(ctx, xF, yF, wF, 58, 29); ctx.fillStyle = 'rgba(6,8,18,.85)'; ctx.fill();
+        const gb = ctx.createLinearGradient(xF, 0, xF + wF, 0); gb.addColorStop(0, '#22d3ee'); gb.addColorStop(.6, '#ff2d8a'); gb.addColorStop(1, '#ffd24a');
+        ctx.strokeStyle = gb; ctx.lineWidth = 3; ctx.stroke();
+        ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        ctx.fillStyle = '#ffffff'; ctx.fillText(p1, xF + 32, yF + 30); ctx.fillStyle = '#ffd24a'; ctx.fillText(p2, xF + 32 + w1, yF + 30);
+    pEsp(ctx, 0);
+    }
+
+    function pCabecalho(ctx, colunas) {
+        const y = P_TOPO_TABELA + 30;
+        colunas.forEach(c => {
+            pEsp(ctx, 1.5);
+            pTexto(ctx, c.t, c.x, y, { tam: 20, peso: 800, cor: c.cor || '#ffffff', alinhar: c.esq ? 'left' : 'center' });
+            if (c.s) pTexto(ctx, c.s, c.x, y + 26, { tam: 15, peso: 700, cor: '#8d99ba', alinhar: c.esq ? 'left' : 'center' });
+            pEsp(ctx, 0);
+        });
+    }
+
+    function pFundoLinha(ctx, i, y, total) {
+        pRR(ctx, 56, y + 4, P_W - 112, P_ROW - 8, 10);
+        ctx.fillStyle = total ? 'rgba(255,210,74,.10)' : (i % 2 ? 'rgba(255,255,255,.035)' : 'rgba(255,255,255,.065)'); ctx.fill();
+        if (total) { ctx.strokeStyle = 'rgba(255,210,74,.55)'; ctx.lineWidth = 1.5; ctx.stroke(); return; }
+        ctx.fillStyle = i % 2 ? '#22d3ee' : '#ff2d8a'; pRR(ctx, 56, y + 6, 5, P_ROW - 12, 2.5); ctx.fill();
+    }
+
+    // ---- uma página da parcial ----
+    function pPagina(tipo, itens, inicio, pagina, totalPag, trofeu, totalGeral) {
+        const cfg = PARCIAL_TIPOS[tipo];
+        const temTotal = false;   // linha de total regional desligada
+        const tH = P_HEAD + itens.length * P_ROW + 14;
+        const H = P_TOPO_TABELA + tH + 180;
+        const cv = document.createElement('canvas'); cv.width = P_W; cv.height = H;
+        const ctx = cv.getContext('2d');
+        pMoldura(ctx, H, cfg, pagina, totalPag, trofeu, tH);
+        const y0 = P_TOPO_TABELA + P_HEAD;
+
+        if (tipo === 'colab') {
+            pCabecalho(ctx, [
+                { t: 'COLABORADOR', x: 80, esq: true }, { t: '🏪 FILIAL', x: 500, cor: '#ffd24a' },
+                { t: 'REALIZADO', s: 'CARTÕES', x: 643, cor: '#22d3ee' }, { t: '🎁 PRÊMIO', s: 'GARANTIDO', x: 790, cor: '#34f5a0' },
+                { t: '⬆️ PRÓXIMA', s: 'FAIXA', x: 940, cor: '#ff8fb8' }
+            ]);
+            itens.forEach((c, i) => {
+                const y = y0 + i * P_ROW, cy = y + P_ROW / 2; pFundoLinha(ctx, i, y);
+                let atual = null, prox = null; FAIXAS_CAMPANHA_CARTAO.forEach(f => { if (c.realizado >= f.cartoes) atual = f; else if (!prox) prox = f; });
+                const partes = String(c.nome).trim().split(/\s+/); const nomeCurto = partes.length > 1 ? partes[0] + ' ' + partes[partes.length - 1] : partes[0];
+                pTexto(ctx, `${inicio + i + 1}º`, 80, cy, { tam: 19, peso: 800, cor: '#8d99ba' });
+                pTexto(ctx, nomeCurto, 132, cy, { tam: 23, peso: 800, cor: '#ffffff', maxW: 330 });
+                pTexto(ctx, `FL ${c.filial}`, 500, cy, { tam: 22, peso: 800, cor: '#ffd24a', alinhar: 'center' });
+                pValor(ctx, c.realizado, false, 643, cy, atual ? '#34f5a0' : '#ffffff', 28);
+                if (atual) pPill(ctx, `R$ ${atual.premio}`, 785, cy, '#34f5a0', 20); else pTexto(ctx, '—', 790, cy, { tam: 26, peso: 800, cor: '#5b6683', alinhar: 'center' });
+                if (prox) pTexto(ctx, `+${formatarValor(prox.cartoes - c.realizado, false)} → R$ ${prox.premio}`, 940, cy, { tam: 20, peso: 800, cor: '#ffd24a', alinhar: 'center' });
+                else pTexto(ctx, 'FAIXA MÁX. 🏆', 940, cy, { tam: 18, peso: 900, cor: '#34f5a0', alinhar: 'center' });
+            });
+            if (temTotal) {
+                const y = y0 + itens.length * P_ROW + 6, cy = y + P_ROW / 2; pFundoLinha(ctx, 0, y, true);
+                pTexto(ctx, 'TOTAL REGIONAL', 80, cy, { tam: 22, peso: 900, cor: '#ffd24a' });
+                pValor(ctx, totalGeral.feito, false, 648, cy, '#ffd24a', 28);
+                pTexto(ctx, `${totalGeral.premiados} DE ${totalGeral.pessoas} JÁ PREMIADOS`, 862, cy, { tam: 19, peso: 900, cor: '#34f5a0', alinhar: 'center' });
+            }
+        } else {
+            pCabecalho(ctx, [
+                { t: 'FILIAL', x: 80, esq: true }, { t: '🎯 META', s: cfg.metaSub || '', x: 430, cor: '#22d3ee' },
+                { t: '✅ REALIZADO', x: 592, cor: '#ffd24a' }, { t: '⏳ FALTA', x: 754, cor: '#ff8fb8' },
+                { t: '📈 PROJEÇÃO', s: 'DO MÊS', x: 920, cor: '#34f5a0' }
+            ]);
+            itens.forEach((s, i) => {
+                const y = y0 + i * P_ROW, cy = y + P_ROW / 2; pFundoLinha(ctx, i, y);
+                const falta = Math.max(0, (s.metaCalculada || 0) - (s.realizado || 0));
+                pTexto(ctx, `${inicio + i + 1}º`, 80, cy, { tam: 19, peso: 800, cor: '#8d99ba' });
+                pTexto(ctx, `FL ${s.filial}`, 132, cy, { tam: 25, peso: 900, cor: '#ffd24a' });
+                pValor(ctx, s.metaCalculada, cfg.mon, 430, cy);
+                pValor(ctx, s.realizado, cfg.mon, 592, cy);
+                if (falta > 0) pValor(ctx, falta, cfg.mon, 754, cy, '#ff8fb8');
+                else pTexto(ctx, 'BATEU ✔', 754, cy, { tam: 21, peso: 900, cor: '#34f5a0', alinhar: 'center' });
+                pPill(ctx, pPerc(s.proj), 920, cy, pCorPerc(s.proj));
+            });
+            if (temTotal) {
+                const y = y0 + itens.length * P_ROW + 6, cy = y + P_ROW / 2; pFundoLinha(ctx, 0, y, true);
+                const faltaT = Math.max(0, totalGeral.meta - totalGeral.feito);
+                pTexto(ctx, 'TOTAL REGIONAL', 80, cy, { tam: 22, peso: 900, cor: '#ffd24a' });
+                pValor(ctx, totalGeral.meta, cfg.mon, 430, cy, '#ffd24a');
+                pValor(ctx, totalGeral.feito, cfg.mon, 592, cy, '#ffd24a');
+                if (faltaT > 0) pValor(ctx, faltaT, cfg.mon, 754, cy, '#ff8fb8'); else pTexto(ctx, 'BATEU ✔', 754, cy, { tam: 21, peso: 900, cor: '#34f5a0', alinhar: 'center' });
+                const pFeito = totalGeral.meta > 0 ? totalGeral.feito / totalGeral.meta * 100 : 0;
+                pTexto(ctx, `${pPerc(pFeito)} FEITO`, 920, cy, { tam: 20, peso: 900, cor: '#ffffff', alinhar: 'center' });
+            }
+        }
+        return new Promise((ok, erro) => { try { cv.toBlob(b => b ? ok(b) : erro(new Error('blob')), 'image/png'); } catch (e) { erro(e); } });
+    }
+
+    async function montarPaginasParcial(tipo, itens, trofeu, totalGeral) {
+        const totalPag = Math.ceil(itens.length / P_LINHAS_PAG), blobs = [];
+        for (let p = 0; p < totalPag; p++) blobs.push(await pPagina(tipo, itens.slice(p * P_LINHAS_PAG, (p + 1) * P_LINHAS_PAG), p * P_LINHAS_PAG, p + 1, totalPag, trofeu, totalGeral));
+        return blobs;
+    }
+
+    async function gerarParcial(tipo) {
+        document.getElementById('parcialMenu').classList.remove('show');
+        if (!isMasterLogado) return;
+        const cfg = PARCIAL_TIPOS[tipo]; if (!cfg) return;
+        let itens = [], totalGeral;
+        if (tipo === 'colab') {
+            for (const f in mapaColaboradoresGlobais) mapaColaboradoresGlobais[f].forEach(c => itens.push({ ...c, filial: f }));
+            itens.sort((a, b) => b.realizado - a.realizado || b.proj - a.proj);
+            totalGeral = { feito: itens.reduce((t, c) => t + (c.realizado || 0), 0), premiados: itens.filter(c => c.realizado >= FAIXAS_CAMPANHA_CARTAO[0].cartoes).length, pessoas: itens.length };
+        } else {
+            itens = listaCompletaSeniores.map(s => ({ filial: s.numFilial, ...cfg.det(s) })).sort((a, b) => (b.proj || 0) - (a.proj || 0));
+            totalGeral = { meta: itens.reduce((t, s) => t + (s.metaCalculada || 0), 0), feito: itens.reduce((t, s) => t + (s.realizado || 0), 0) };
+        }
+        if (!itens.length) { showToast('Ainda não há dados para gerar essa parcial.', 'erro'); return; }
+        showToast('Gerando a parcial de ' + cfg.nome + '...', 'info', 2500);
+        try {
+            try { await Promise.all(['800 100px Sora', '800 26px Inter', '900 24px Inter', '700 20px Inter'].map(f => document.fonts.load(f))); } catch (e) {}
+            const trofeu = await imagemTrofeu();
+            let blobs;
+            try { blobs = await montarPaginasParcial(tipo, itens, trofeu, totalGeral); }
+            catch (e) { blobs = await montarPaginasParcial(tipo, itens, null, totalGeral); }   // sem o troféu, se o navegador bloquear
+            mostrarParcial(cfg.nome, tipo, blobs);
+        } catch (e) {
+            showToast('Não consegui gerar a imagem. Tente de novo.', 'erro');
+        }
+    }
+
+    function botaoParcial(txt, fn) { const b = document.createElement('button'); b.type = 'button'; b.className = 'share-option'; b.textContent = txt; b.onclick = fn; return b; }
+
+    function mostrarParcial(nome, tipo, blobs) {
+        parcialArquivos.forEach(a => URL.revokeObjectURL(a.url));
+        const r = diasProjecao().ref, tag = String(r.getDate()).padStart(2, '0') + '-' + String(r.getMonth() + 1).padStart(2, '0');
+        parcialArquivos = blobs.map((b, i) => ({ blob: b, url: URL.createObjectURL(b), nome: `parcial-${tipo}-${tag}${blobs.length > 1 ? '-' + (i + 1) : ''}.png` }));
+        document.getElementById('pm-titulo').textContent = 'Parcial · ' + nome + (blobs.length > 1 ? ` (${blobs.length} imagens)` : '');
+        const box = document.getElementById('pm-imgs'); box.innerHTML = '';
+        const podeCopiar = !!(window.ClipboardItem && navigator.clipboard && navigator.clipboard.write);
+        parcialArquivos.forEach(a => {
+            const wrap = document.createElement('div');
+            const img = document.createElement('img'); img.src = a.url; img.alt = 'Parcial ' + nome;
+            const ac = document.createElement('div'); ac.className = 'pm-acoes';
+            if (podeCopiar) ac.appendChild(botaoParcial('📋 Copiar imagem', async () => {
+                try { await navigator.clipboard.write([new ClipboardItem({ 'image/png': a.blob })]); showToast('Imagem copiada! Abra o grupo no WhatsApp e cole (Ctrl+V).', 'ok'); }
+                catch (e) { showToast('Não deu para copiar. Use o botão Baixar.', 'erro'); }
+            }));
+            ac.appendChild(botaoParcial('⬇️ Baixar', () => { const l = document.createElement('a'); l.href = a.url; l.download = a.nome; l.click(); }));
+            wrap.append(img, ac); box.appendChild(wrap);
+        });
+        const arquivos = parcialArquivos.map(a => new File([a.blob], a.nome, { type: 'image/png' }));
+        const bs = document.getElementById('pm-share');
+        bs.style.display = (navigator.canShare && navigator.canShare({ files: arquivos })) ? '' : 'none';
+        bs.onclick = async () => { try { await navigator.share({ files: arquivos, title: 'Parcial ' + nome }); } catch (e) {} };
+        document.getElementById('parcial-modal').classList.add('show');
+    }
 <\/script>
 <script>
 /* =========================================================
    MODO DESTAQUE — sênior destaque do mês anterior
-   'apresentacao'   = fim do mês: o público vê o pódio com ? (125 / 120 / 115) + card fixo;
-                      o ADMIN vê o resultado real e o botão 🎬 Apresentar
+   'apresentacao'   = pódio com ? e pontuação fixa (125 / 120 / 115) + card fixo (dia da premiação)
    'rotativo'       = ranking real; o card aparece ao abrir e volta a cada 30s (no lugar da lista)
    'rotativo-podio' = ranking real; o pódio aparece normal e, a cada 20s, o card entra NO LUGAR DO PÓDIO
    'desligado'      = só o ranking real
@@ -7592,6 +7911,7 @@ try {
     if (adminBlack()) {
         isMasterLogado = true;
         const bl = document.getElementById('btn-logout'); if (bl) bl.style.display = 'flex';
+        const pc = document.getElementById('parcial-container'); if (pc) pc.style.display = 'flex';
     }
 } catch (e) {}
 atualizarBannerApb();
