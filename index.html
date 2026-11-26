@@ -24,7 +24,8 @@
   (o hub desfaz isso sozinho na hora de abrir o painel).
 
   QUEM VÊ O QUÊ: veja a constante PERFIS no script do hub.
-  ADMINISTRADORES: constante ADMINS (e-mails + senha). Admin libera tudo em qualquer perfil.
+  ADMINISTRADORES: e-mails e senha ficam no Apps Script dos GERENTES (propriedades ADMIN_EMAILS e
+  ADMIN_SENHA). O login de admin é conferido lá. Admin libera tudo em qualquer perfil.
   MODO APRESENTAÇÃO: botão 🎬 na barra (só admin), em qualquer painel.
   SUSPENSE / ROTATIVO: constante DESTAQUE dentro de cada painel (modo 'apresentacao' | 'rotativo' | 'desligado').
   LINKS DIRETOS: index.html#gerente  #senior  #lideranca  #vendedor
@@ -331,21 +332,10 @@ const ORDEM_PERFIS = ['gerente', 'senior', 'lideranca', 'vendedor'];
 /* =====================================================================
    ADMINISTRADORES — login = e-mail + senha de administrador.
    Vale para os 3 painéis e libera todos os acessos, em qualquer perfil.
-   A senha não fica escrita aqui, só a "impressão digital" dela (SHA-256).
-   Para trocar a senha: abra o hub, aperte F12 > Console e digite
-       gerarHashSenha('nova senha')
-   e cole o resultado em senhaHash.
+   Nada de senha (nem hash) fica aqui: o Apps Script dos GERENTES confere
+   (propriedades ADMIN_EMAILS e ADMIN_SENHA) e devolve um token assinado,
+   que é revalidado no servidor sempre que o hub abre.
    ===================================================================== */
-const ADMINS = {
-    emails: [
-        'alr_soares@magazineluiza.com.br',
-        'dirlei.dresch@magazineluiza.com.br',
-        'luismatos@magazineluiza.com.br',
-        'camila.minas@magazineluiza.com.br',
-        'soraya.yoshida@magazineluiza.com.br'
-    ],
-    senhaHash: '50b84876d341c800ca5aa8a460f384ace43d34a1757952f8135dc9ee95042f3f'
-};
 
 const PAINEIS = {
     gerente:  { fonte: 'gerente',  titulo: 'TROFÉU GLOBAL',   sub: 'Painel dos Gerentes', icone: 'trofeu', cor: '#ffd24a' },
@@ -396,69 +386,55 @@ function toast(msg, ms = 3000) {
 
 
 /* ===================== ADMIN CENTRAL (vale para os 3 painéis) ===================== */
-function sha256(ascii) {
-    function rr(v, a) { return (v >>> a) | (v << (32 - a)); }
-    const K = [], H = [];
-    let p = 2, n = 0;
-    const isP = x => { for (let f = 2; f * f <= x; f++) if (x % f === 0) return false; return true; };
-    while (n < 64) { if (isP(p)) { if (n < 8) H[n] = (Math.pow(p, 1 / 2) * 4294967296) | 0; K[n] = (Math.pow(p, 1 / 3) * 4294967296) | 0; n++; } p++; }
-    const bytes = Array.from(new TextEncoder().encode(ascii));
-    const bl = bytes.length * 8;
-    bytes.push(0x80);
-    while (bytes.length % 64 !== 56) bytes.push(0);
-    for (let i = 7; i >= 0; i--) bytes.push(i > 3 ? 0 : (bl >>> (i * 8)) & 255);
-    const h = H.slice();
-    for (let j = 0; j < bytes.length; j += 64) {
-        const w = [];
-        for (let i = 0; i < 16; i++) w[i] = (bytes[j + i * 4] << 24) | (bytes[j + i * 4 + 1] << 16) | (bytes[j + i * 4 + 2] << 8) | bytes[j + i * 4 + 3];
-        for (let i = 16; i < 64; i++) {
-            const s0 = rr(w[i - 15], 7) ^ rr(w[i - 15], 18) ^ (w[i - 15] >>> 3), s1 = rr(w[i - 2], 17) ^ rr(w[i - 2], 19) ^ (w[i - 2] >>> 10);
-            w[i] = (w[i - 16] + s0 + w[i - 7] + s1) | 0;
-        }
-        let [a, b, c, d, e, f, g, hh] = h;
-        for (let i = 0; i < 64; i++) {
-            const t1 = (hh + (rr(e, 6) ^ rr(e, 11) ^ rr(e, 25)) + ((e & f) ^ (~e & g)) + K[i] + w[i]) | 0;
-            const t2 = ((rr(a, 2) ^ rr(a, 13) ^ rr(a, 22)) + ((a & b) ^ (a & c) ^ (b & c))) | 0;
-            hh = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
-        }
-        h[0] = (h[0] + a) | 0; h[1] = (h[1] + b) | 0; h[2] = (h[2] + c) | 0; h[3] = (h[3] + d) | 0;
-        h[4] = (h[4] + e) | 0; h[5] = (h[5] + f) | 0; h[6] = (h[6] + g) | 0; h[7] = (h[7] + hh) | 0;
-    }
-    return h.map(x => (x >>> 0).toString(16).padStart(8, '0')).join('');
-}
-
-window.gerarHashSenha = s => sha256(String(s).trim());
 const LS_ADMIN = 'black_admin';
-const emailsAdm = () => ADMINS.emails.map(e => String(e).trim().toLowerCase());
-const tokenAdmin = email => sha256(email + '|' + ADMINS.senhaHash);
+function urlAdmin() { const m = fonte('gerente').match(/const\s+URL_WEB_APP\s*=\s*['"]([^'"]+)['"]/); return m ? m[1] : ''; }
+async function postAdmin(params) {
+    const url = urlAdmin(); if (!url) throw new Error('sem_url');
+    const r = await fetch(url, { method: 'POST', body: new URLSearchParams(params) });
+    return r.json();
+}
+function lerAdminLS() { try { const o = JSON.parse(ls.get(LS_ADMIN) || 'null'); return o && o.email && o.t ? o : null; } catch (e) { return null; } }
+function expDoToken(t) {   // só para não mandar ao servidor um token que já venceu (quem decide é o servidor)
+    try { const b = String(t).split('.')[0].replace(/-/g, '+').replace(/_/g, '/'); return JSON.parse(decodeURIComponent(escape(atob(b)))).exp || 0; } catch (e) { return 0; }
+}
+let adminValidado = false;   // só vira true depois que o servidor confirma o token
 const HubAdmin = {
-    confere(email, senha) {
+    ultimoErro: '',
+    ativo() { return adminValidado && !!lerAdminLS(); },
+    email() { const o = lerAdminLS(); return (adminValidado && o) ? o.email : ''; },
+    token() { const o = lerAdminLS(); return (adminValidado && o) ? o.t : ''; },
+    async entrar(email, senha, origem) {
+        this.ultimoErro = '';
         email = String(email || '').trim().toLowerCase();
-        return emailsAdm().includes(email) && sha256(String(senha || '').trim()) === ADMINS.senhaHash;
-    },
-    ativo() {
-        try { const o = JSON.parse(ls.get(LS_ADMIN) || 'null'); return !!(o && emailsAdm().includes(o.email) && o.t === tokenAdmin(o.email)); }
-        catch (e) { return false; }
-    },
-    email() { try { return JSON.parse(ls.get(LS_ADMIN)).email || ''; } catch (e) { return ''; } },
-    entrar(email, senha, origem) {
-        if (!this.confere(email, senha)) return false;
-        email = String(email).trim().toLowerCase();
-        ls.set(LS_ADMIN, JSON.stringify({ email, t: tokenAdmin(email) }));
+        let r;
+        try { r = await postAdmin({ action: 'admin_login', email, senha: String(senha || '').trim() }); }
+        catch (e) { this.ultimoErro = 'Erro de conexão. Tente de novo em instantes.'; return false; }
+        if (!r || !r.ok || !r.token) { this.ultimoErro = (r && r.erro) || 'E-mail ou senha de administrador incorretos.'; return false; }
+        ls.set(LS_ADMIN, JSON.stringify({ email: r.email || email, t: r.token }));
+        adminValidado = true;
         ls.set(CHAVE_GERENTE, 'ADMIN');
         setTimeout(() => aoMudarAdmin(origem || null, true), 0);
         return true;
     },
     sair(origem) {
+        adminValidado = false;
         ls.del(LS_ADMIN);
         if (ls.get(CHAVE_GERENTE) === 'ADMIN') ls.del(CHAVE_GERENTE);
         setTimeout(() => aoMudarAdmin(origem || null, false), 0);
     }
 };
 window.__hubAdmin = HubAdmin;
-// Padronização: admin antigo (só e-mail, sem a senha) não vale mais
-if (HubAdmin.ativo()) ls.set(CHAVE_GERENTE, 'ADMIN');
-else { ls.del(LS_ADMIN); if (ls.get(CHAVE_GERENTE) === 'ADMIN') ls.del(CHAVE_GERENTE); }
+// Ao abrir o hub: o admin salvo só vale depois que o servidor confere o token
+function limparAdminLocal() { ls.del(LS_ADMIN); if (ls.get(CHAVE_GERENTE) === 'ADMIN') ls.del(CHAVE_GERENTE); }
+setTimeout(function () {
+    const o = lerAdminLS();
+    if (!o) { if (ls.get(CHAVE_GERENTE) === 'ADMIN') ls.del(CHAVE_GERENTE); return; }
+    if (expDoToken(o.t) < Date.now()) { limparAdminLocal(); return; }
+    postAdmin({ action: 'admin_validar', token: o.t }).then(r => {
+        if (r && r.ok) { adminValidado = true; ls.set(CHAVE_GERENTE, 'ADMIN'); aoMudarAdmin(null, true); }
+        else { limparAdminLocal(); aoMudarAdmin(null, false); }
+    }).catch(() => {});   // sem internet: continua sem admin e tenta de novo na próxima vez
+}, 0);
 
 /* ===================== FONTES DOS PAINÉIS ===================== */
 const cacheFonte = {};
@@ -638,7 +614,10 @@ async function loginGerente() {
     const digitado = $('lg-usuario').value.trim(), id = $('lg-id').value.trim();
     if (!digitado || !id) { erro.textContent = 'Preencha os dois campos.'; return; }
     if (digitado.includes('@')) {                                   // administrador
-        if (!HubAdmin.entrar(digitado, id)) { erro.textContent = 'E-mail ou senha de administrador incorretos.'; somTick(0, 220); return; }
+        const btnA = $('lg-btn'); logando = true; btnA.disabled = true; btnA.textContent = 'ENTRANDO...';
+        let okA = false;
+        try { okA = await HubAdmin.entrar(digitado, id); } finally { logando = false; btnA.disabled = false; btnA.textContent = 'ENTRAR'; }
+        if (!okA) { erro.textContent = HubAdmin.ultimoErro || 'E-mail ou senha de administrador incorretos.'; somTick(0, 220); return; }
         fecharLoginGerente(); somBrilho(0);
         toast('👑 Modo administrador ativo: todos os acessos liberados');
         if (modoLogin === 'gerente') setTimeout(() => escolherPerfil('gerente'), 250);
@@ -767,8 +746,8 @@ const INTRO_DEPOIS = `<script>(function(){
 
 // Ponte: cada painel enxerga o admin central como window.BlackAdmin
 const PONTE_ADMIN = `<script>(function(){ try { var H = parent.__hubAdmin; if (!H) return;
-  window.BlackAdmin = { ativo: function(){ return H.ativo(); }, email: function(){ return H.email(); },
-    entrar: function(e, s){ return H.entrar(e, s, window); }, sair: function(){ H.sair(window); } };
+  window.BlackAdmin = { ativo: function(){ return H.ativo(); }, email: function(){ return H.email(); }, token: function(){ return H.token(); },
+    entrar: function(e, s){ return H.entrar(e, s, window); }, erro: function(){ return H.ultimoErro; }, sair: function(){ H.sair(window); } };
 } catch (e) {} })();<\/script>`;
 // Painel dos gerentes: avisa o hub quando a apresentação abre/fecha
 const GERENTE_DEPOIS = `<script>(function(){
@@ -2402,7 +2381,7 @@ let ordenacao = { key: 'rank', dir: 1 };
 let listaCompletaFiliais = [];
 let dadosCarregados = false;
 
-// Lista de administradores: agora fica no HUB (constante ADMINS no index.html), igual para os 3 painéis.
+// Administradores: conferidos no Apps Script dos GERENTES (pelo hub), igual para os 3 painéis.
 const FILIAIS_EXCLUIDAS = ['1123', '1131', '1138', '1139', '1503'];
 const NPS_MINIMO_RANKING = 85;
 const CARTAO_META_TROFEU = 115;   // Troféu Global: cartão pontua a partir de 115%
@@ -2554,7 +2533,12 @@ async function realizarLogin() {
     const digitado = document.getElementById('login-usuario').value.trim().toLowerCase();
     if (digitado.includes('@')) {
         const senhaAdm = document.getElementById('login-id').value.trim();
-        if (!(window.BlackAdmin && BlackAdmin.entrar(digitado, senhaAdm))) return mostrarErro('E-mail ou senha de administrador incorretos.');
+        if (!window.BlackAdmin) return mostrarErro('Abra pelo hub para entrar como administrador.');
+        if (loginEmAndamento) return;
+        loginEmAndamento = true;
+        let okAdm = false;
+        try { okAdm = await BlackAdmin.entrar(digitado, senhaAdm); } finally { loginEmAndamento = false; }
+        if (!okAdm) return mostrarErro((BlackAdmin.erro && BlackAdmin.erro()) || 'E-mail ou senha de administrador incorretos.');
         document.getElementById('login-id').value = '';
         localStorage.setItem('gerente_filial_logada_trofeu', 'ADMIN');
         reaplicarVisibilidade();
@@ -6295,10 +6279,13 @@ document.addEventListener('keydown', e => {
 
     // Busca os dados restritos (colaboradores) usando o token do login
     async function carregarDadosPrivados() {
-        if (!tokenSessao) return;
-        const r = await chamarServidor({ action: 'dados', token: tokenSessao });
+        // admin do hub: usa o token de administrador (o Apps Script confere com o servidor dos gerentes)
+        const tokenAdm = (!tokenSessao && isMasterLogado && window.BlackAdmin && BlackAdmin.token) ? BlackAdmin.token() : '';
+        if (!tokenSessao && !tokenAdm) return;
+        const r = await chamarServidor(tokenSessao ? { action: 'dados', token: tokenSessao } : { action: 'dados', admin_token: tokenAdm });
         if (r.erro) {
-            if (r.erro === 'sessao_expirada') { showToast('Sua sessão expirou. Entre novamente.', 'erro'); fazerLogout(); }
+            if (r.erro === 'sessao_expirada' && tokenSessao) { showToast('Sua sessão expirou. Entre novamente.', 'erro'); fazerLogout(); }
+            else if (tokenAdm) showToast('Não consegui carregar os colaboradores agora.', 'erro');
             return;
         }
         dadosPrivados = { ct_colaborador: r.ct_colaborador || [], quadro_vendedor: r.quadro_vendedor || [] };
@@ -6347,7 +6334,7 @@ document.addEventListener('keydown', e => {
 
     function trocarAba(nomeAba) {
         const precisaLogin = ((nomeAba === 'simulador' || nomeAba === 'metas' || nomeAba === 'colaborador') && !isMasterLogado && !seniorLogadoFilial)
-                          || (nomeAba === 'colaborador' && !tokenSessao);   // colaboradores só chegam com o token do login (admin do hub: entre com o usuário MASTER)
+                          || (nomeAba === 'colaborador' && !tokenSessao && !dadosPrivados);   // colaboradores só chegam com token (login ou admin do hub)
         if (precisaLogin) {
             abaPendente = nomeAba;
             let overlay = document.getElementById('login-overlay');
@@ -6383,8 +6370,13 @@ document.addEventListener('keydown', e => {
         // Admin: e-mail no LOGIN + senha de administrador (padrão do hub, vale para os 3 painéis)
         const emailDigitado = document.getElementById('input-usuario').value.trim().toLowerCase();
         if (emailDigitado.includes('@')) {
-            if (!(window.BlackAdmin && BlackAdmin.entrar(emailDigitado, senhaDigitada))) {
-                erroBox.innerText = "E-mail ou senha de administrador incorretos.";
+            let okAdm = false;
+            if (window.BlackAdmin) {
+                loginEmAndamento = true; loading.style.display = 'block';
+                try { okAdm = await BlackAdmin.entrar(emailDigitado, senhaDigitada); } finally { loginEmAndamento = false; loading.style.display = 'none'; }
+            }
+            if (!okAdm) {
+                erroBox.innerText = (window.BlackAdmin && BlackAdmin.erro && BlackAdmin.erro()) || (window.BlackAdmin ? "E-mail ou senha de administrador incorretos." : "Abra pelo hub para entrar como administrador.");
                 erroBox.style.display = 'block';
                 return;
             }
@@ -6397,8 +6389,8 @@ document.addEventListener('keydown', e => {
             if (visaoMetas === 'ranking') renderRankingIndicadores();
             document.getElementById('btn-logout').style.display = 'flex';
             document.getElementById('parcial-container').style.display = 'flex';
-            if (destinoMaster && !(destinoMaster === 'colaborador' && !tokenSessao)) executarTrocaAba(destinoMaster);
-            else if (destinoMaster) showToast('Para ver os colaboradores, entre com o usuário MASTER da planilha.', 'info', 5500);
+            try { await carregarDadosPrivados(); } catch (e) {}
+            if (destinoMaster) executarTrocaAba(destinoMaster);
             abaPendente = null;
             return;
         }
@@ -7912,6 +7904,7 @@ try {
         isMasterLogado = true;
         const bl = document.getElementById('btn-logout'); if (bl) bl.style.display = 'flex';
         const pc = document.getElementById('parcial-container'); if (pc) pc.style.display = 'flex';
+        carregarDadosPrivados().catch(() => {});   // colaboradores de todas as filiais
     }
 } catch (e) {}
 atualizarBannerApb();
@@ -8954,7 +8947,7 @@ try { if (typeof listaCompletaSeniores !== 'undefined' && listaCompletaSeniores.
 const URL_WEB_APP = 'https://script.google.com/macros/s/AKfycbxasvW96yOzghTgnmfvRTmpF5IL6_467ePWcFM9l5FpFw24YfWV3Xyu8HngBGHTrvNq/exec';
 
 // Acesso de administrador (vê todos os vendedores)
-// Admin: e-mail + senha de administrador (padrão do hub — lista e senha ficam no index.html, constante ADMINS)
+// Admin: e-mail + senha de administrador (padrão do hub — conferidos no Apps Script dos GERENTES)
 
 // ==========================================
 // REGRAS DA POLÍTICA SALARIAL — VENDEDORES (outubro/2026)
@@ -9666,7 +9659,13 @@ async function validarAcesso() {
     const email = String(document.getElementById('input-usuario').value).trim().toLowerCase();
     if (!u || !s) return erroLogin('Preencha o login e a senha.');
     if (email.includes('@')) {
-        if (!(window.BlackAdmin && BlackAdmin.entrar(email, s))) return erroLogin('E-mail ou senha de administrador incorretos.');
+        if (!window.BlackAdmin) return erroLogin('Abra pelo hub para entrar como administrador.');
+        loginVendEmAndamento = true;
+        erroLogin('Verificando acesso... ⏳');
+        let okAdm = false;
+        try { okAdm = await BlackAdmin.entrar(email, s); } finally { loginVendEmAndamento = false; }
+        if (!okAdm) return erroLogin((BlackAdmin.erro && BlackAdmin.erro()) || 'E-mail ou senha de administrador incorretos.');
+        document.getElementById('login-erro').style.display = 'none';
         sessao = { tipo: 'admin' }; cdiAtivo = null;
     } else {
         if (!dadosOk) return erroLogin('Aguarde: os dados ainda estão carregando.');
