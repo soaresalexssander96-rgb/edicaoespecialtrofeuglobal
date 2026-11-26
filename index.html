@@ -651,14 +651,14 @@ async function loginGerente() {
     const btn = $('lg-btn'); logando = true; btn.disabled = true; btn.textContent = 'ENTRANDO...';
     try {
         const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `action=login&login=${encodeURIComponent(usuario)}&id=${encodeURIComponent(id)}` });
+            body: `action=login&login=${encodeURIComponent(usuario)}&senha=${encodeURIComponent(id)}` });
         const resp = await r.json();
         if (resp && resp.ok && resp.filial) {
             ls.set(CHAVE_GERENTE, String(resp.filial).trim());
             fecharLoginGerente(); somBrilho(0);
             toast(`✅ Bem-vindo, gerente da FL ${ls.get(CHAVE_GERENTE)}!`);
             setTimeout(() => escolherPerfil('gerente'), 250);
-        } else { erro.textContent = 'Acesso negado: LOGIN ou ID incorretos.'; somTick(0, 220); }
+        } else { erro.textContent = (resp && resp.erro) || 'Acesso negado: LOGIN ou ID incorretos.'; somTick(0, 220); }
     } catch (e) {
         erro.textContent = 'Erro de conexão. Tente de novo em instantes.';
     } finally { logando = false; btn.disabled = false; btn.textContent = 'ENTRAR'; }
@@ -2573,7 +2573,7 @@ async function realizarLogin() {
         const r = await fetch(URL_WEB_APP, {
             method: 'POST',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: `action=login&login=${encodeURIComponent(usuario)}&id=${encodeURIComponent(id)}`
+            body: `action=login&login=${encodeURIComponent(usuario)}&senha=${encodeURIComponent(id)}`
         });
         const resp = await r.json();
         if (resp && resp.ok) {
@@ -2584,7 +2584,7 @@ async function realizarLogin() {
             aplicarTravaAbas();
             if (abaPendenteLogin) { const a = abaPendenteLogin; abaPendenteLogin = null; trocarAba(a); }
         } else {
-            mostrarErro('Acesso negado: LOGIN ou ID incorretos.');
+            mostrarErro((resp && resp.erro) || 'Acesso negado: LOGIN ou ID incorretos.');
         }
     } catch (e) {
         mostrarErro('Erro de conexão. Tente de novo em instantes.');
@@ -9658,7 +9658,9 @@ function fecharLogin() {
 }
 function erroLogin(msg) { const e = document.getElementById('login-erro'); e.innerText = msg; e.style.display = 'block'; }
 
-function validarAcesso() {
+let loginVendEmAndamento = false;
+async function validarAcesso() {
+    if (loginVendEmAndamento) return;
     const u = norm(document.getElementById('input-usuario').value);
     const s = String(document.getElementById('input-senha').value).trim();
     const email = String(document.getElementById('input-usuario').value).trim().toLowerCase();
@@ -9668,9 +9670,24 @@ function validarAcesso() {
         sessao = { tipo: 'admin' }; cdiAtivo = null;
     } else {
         if (!dadosOk) return erroLogin('Aguarde: os dados ainda estão carregando.');
-        const x = VENDEDORES.find(v => v.login && v.login !== 'NULL' && v.login === u && chaveCdi(s) === v.cdi);
-        if (!x) return erroLogin('Acesso negado: login ou ID incorretos.');
-        sessao = { tipo: 'vendedor', cdi: x.cdi }; cdiAtivo = x.cdi;
+        // O login e o ID são conferidos no Apps Script; o navegador recebe só o código do vendedor
+        let r;
+        loginVendEmAndamento = true;
+        erroLogin('Verificando acesso... ⏳');
+        try {
+            const resp = await fetch(URL_WEB_APP, { method: 'POST', body: new URLSearchParams({ action: 'login', login: String(document.getElementById('input-usuario').value).trim().toUpperCase(), senha: s }) });
+            r = await resp.json();
+        } catch (e) {
+            return erroLogin('Não foi possível conectar ao servidor. Tente de novo em instantes.');
+        } finally { loginVendEmAndamento = false; }
+        if (!r || !r.ok) return erroLogin((r && r.erro) || 'Acesso negado: login ou ID incorretos.');
+        if (r.master) { sessao = { tipo: 'admin' }; cdiAtivo = null; }
+        else {
+            const x = VENDEDORES.find(v => v.cdi === chaveCdi(r.chave));
+            if (!x) return erroLogin('Login certo, mas o seu nome não está no ranking deste mês (cargo ou planilha).');
+            sessao = { tipo: 'vendedor', cdi: x.cdi }; cdiAtivo = x.cdi;
+        }
+        document.getElementById('login-erro').style.display = 'none';
     }
     gravarLS('vend_sessao', sessao);
     document.getElementById('input-senha').value = '';
