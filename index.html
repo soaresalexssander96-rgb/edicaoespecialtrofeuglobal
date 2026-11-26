@@ -1969,6 +1969,30 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
         @keyframes brilho { from { background-position: 0% center; } to { background-position: 220% center; } }
 
     </style>
+<style id="natal-teaser-css">
+.natal-teaser{position:relative;width:100%;max-width:520px;margin:auto;padding:30px 22px 26px;border-radius:22px;text-align:center;overflow:hidden;box-sizing:border-box;
+  background:radial-gradient(120% 90% at 50% 0%,#4a0d18 0%,#1a070c 55%,#06200f 100%);border:1px solid rgba(255,210,74,.5);
+  box-shadow:0 0 42px rgba(255,46,77,.28),inset 0 0 60px rgba(31,209,122,.10);color:#fff;font-family:Inter,system-ui,sans-serif;animation:ntEntra .8s cubic-bezier(.2,.9,.3,1.2) both}
+.natal-teaser>*{position:relative;z-index:1}
+.nt-luzes{position:absolute!important;top:10px;left:0;right:0;display:flex;justify-content:space-around;z-index:2!important}
+.nt-luzes span{width:9px;height:9px;border-radius:50%;background:#ff2e4d;box-shadow:0 0 8px currentColor;color:#ff2e4d;animation:ntPisca 1.4s ease-in-out infinite}
+.nt-luzes span:nth-child(3n+2){background:#ffd24a;color:#ffd24a}.nt-luzes span:nth-child(3n){background:#1fd17a;color:#1fd17a}
+.nt-neve{position:absolute!important;inset:0;z-index:0!important;pointer-events:none;overflow:hidden}
+.nt-neve i{position:absolute;top:-16px;color:#fff;opacity:.75;font-style:normal;animation:ntNeve linear infinite}
+.nt-vem{display:inline-block;margin-top:14px;padding:7px 18px;border-radius:30px;background:linear-gradient(90deg,#ff2e4d,#ffd24a);color:#1a0408;font-weight:900;letter-spacing:5px;font-size:.82em;box-shadow:0 0 18px rgba(255,46,77,.45);animation:ntPulso 1.6s ease-in-out infinite}
+.nt-icone{display:inline-block;font-size:3.3em;margin:12px 0 2px;animation:ntBalanca 2.6s ease-in-out infinite;filter:drop-shadow(0 0 14px rgba(31,209,122,.5))}
+.nt-titulo{font-weight:900;font-size:2.15em;line-height:1.04;letter-spacing:1px;background:linear-gradient(180deg,#fff7d6,#ffd24a 45%,#f5a524);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 12px rgba(255,210,74,.35))}
+.nt-sub{margin-top:9px;font-weight:800;letter-spacing:3px;font-size:.76em;color:#3ee38f}
+.nt-linha{height:2px;margin:16px auto 13px;width:70%;background:linear-gradient(90deg,transparent,#ffd24a,transparent)}
+.nt-txt{font-size:.9em;color:#eadbc6;line-height:1.5}.nt-txt b{color:#ffd24a}
+@keyframes ntNeve{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(620px) rotate(360deg)}}
+@keyframes ntPisca{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
+@keyframes ntPulso{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes ntBalanca{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+@keyframes ntEntra{0%{opacity:0;transform:scale(.85) translateY(14px)}100%{opacity:1;transform:none}}
+@media(max-width:600px){.nt-titulo{font-size:1.7em}.natal-teaser{padding:28px 16px 22px}}
+@media(prefers-reduced-motion:reduce){.natal-teaser,.natal-teaser *{animation:none!important}}
+</style>
 </head>
 <body>
 
@@ -3628,7 +3652,7 @@ function renderTabelaMetas(anim = false) {
     const ms = document.getElementById('metas-suspense');
     if (ms) {
         ms.style.display = ocultoMetas ? 'block' : 'none';
-        if (ocultoMetas && !ms.innerHTML) ms.innerHTML = htmlCardDestaque() + '<div class="metas-suspense-nota">RESULTADO REVELADO NA PREMIAÇÃO</div>';
+        if (ocultoMetas && !ms.innerHTML) ms.innerHTML = htmlCardDestaque();
     }
     document.querySelector('#aba-metas .tabela-container-scroll').style.display = ocultoMetas ? 'none' : '';
     document.querySelector('#aba-metas .toolbar-metas').style.display = ocultoMetas ? 'none' : '';
@@ -3699,7 +3723,7 @@ const DESTAQUE = {
     // 'rotativo'     = ranking real; o card da filial global aparece ao abrir (4s) e volta a cada 30s
     // 'rotativo-podio' = ranking real; o pódio aparece normal e, a cada 20s, a foto entra NO LUGAR DO PÓDIO
     // 'desligado'    = só o ranking real
-    modo: 'rotativo',
+    modo: 'apresentacao',   // 🎄 26/11: resultado escondido + card "Vem aí Natal dos Campeões" (volte para 'rotativo' depois)
     segundosDestaque: 8,          // quanto tempo a foto fica na tela
     intervaloSegundos: 25,        // modo 'rotativo': tempo do ranking entre uma foto e outra
     intervaloSegundosPodio: 20,   // modo 'rotativo-podio': tempo do pódio entre uma foto e outra
@@ -3731,7 +3755,11 @@ function pintarDestaque() {
     lista.innerHTML = htmlCardDestaque();
 }
 
+function htmlTeaserNatal() {
+    return `<div class="natal-teaser"><div class="nt-neve"><i style="left:4%;animation-duration:7s;animation-delay:-1s;font-size:12px">❄</i><i style="left:13%;animation-duration:9s;animation-delay:-4s;font-size:9px">❄</i><i style="left:22%;animation-duration:6s;animation-delay:-2s;font-size:14px">❄</i><i style="left:31%;animation-duration:8s;animation-delay:-6s;font-size:10px">❄</i><i style="left:42%;animation-duration:10s;animation-delay:-3s;font-size:12px">❄</i><i style="left:51%;animation-duration:7s;animation-delay:-5s;font-size:9px">❄</i><i style="left:60%;animation-duration:9s;animation-delay:-1s;font-size:15px">❄</i><i style="left:69%;animation-duration:6s;animation-delay:-4s;font-size:10px">❄</i><i style="left:78%;animation-duration:8s;animation-delay:-2s;font-size:13px">❄</i><i style="left:87%;animation-duration:10s;animation-delay:-6s;font-size:9px">❄</i><i style="left:95%;animation-duration:7s;animation-delay:-3s;font-size:12px">❄</i><i style="left:36%;animation-duration:11s;animation-delay:-7s;font-size:8px">❄</i></div><div class="nt-luzes"><span style="animation-delay:0.00s"></span><span style="animation-delay:0.15s"></span><span style="animation-delay:0.30s"></span><span style="animation-delay:0.45s"></span><span style="animation-delay:0.60s"></span><span style="animation-delay:0.75s"></span><span style="animation-delay:0.90s"></span><span style="animation-delay:1.05s"></span><span style="animation-delay:1.20s"></span><span style="animation-delay:1.35s"></span><span style="animation-delay:1.50s"></span><span style="animation-delay:1.65s"></span><span style="animation-delay:1.80s"></span><span style="animation-delay:1.95s"></span></div><div class="nt-vem">VEM AÍ</div><div><span class="nt-icone">🎄</span></div><div class="nt-titulo">NATAL DOS<br>CAMPEÕES</div><div class="nt-sub">EDIÇÃO ESPECIAL · DEZEMBRO 2026</div><div class="nt-linha"></div><div class="nt-txt">O resultado da <b>Black das Black's</b> será revelado na premiação.<br>Prepare-se: em dezembro começa uma nova disputa! 🎁</div></div>`;
+}
 function htmlCardDestaque() {
+    if (DESTAQUE.modo === 'apresentacao') return htmlTeaserNatal();
     return `
         <div class="destaque-global">
             <div class="dg-titulo">${escapeHtml(DESTAQUE.titulo || ('FILIAL GLOBAL - ' + (window.MES_DESTAQUE_TXT || '')))}</div>
@@ -4617,6 +4645,15 @@ document.addEventListener('keydown', e => {
 setTimeout(atualizarBannerSuspense, 0);
 
 <\/script>
+<script>
+/* 🎄 Suspense pré-Natal: quem não é admin só vê as abas sem resultado */
+(function(){
+  var LIVRES = ['ranking','metas','regras'];
+  function bloqueado(n){ try { return (rankingOculto()) && LIVRES.indexOf(n) < 0; } catch(e) { return false; } }
+  function aviso(){ try { showToast('🎄 Resultados guardados para a premiação. Vem aí o Natal dos Campeões!', 'info', 4200); } catch(e){} }
+  var t = window.trocarAba; if (typeof t === 'function') window.trocarAba = function(n){ if (bloqueado(n)) { aviso(); return; } return t.apply(this, arguments); };
+})();
+<\/script>
 </body>
 </html>
 </script>
@@ -5330,6 +5367,30 @@ setTimeout(atualizarBannerSuspense, 0);
         .pm-dica { color: var(--mut); font-size: .8em; text-align: center; padding: 0 18px 12px; }
         @media (max-width:850px) { .parcial-container { bottom: 110px; right: 15px; } .parcial-btn { height: 48px; padding: 0 16px; } }
     </style>
+<style id="natal-teaser-css">
+.natal-teaser{position:relative;width:100%;max-width:520px;margin:auto;padding:30px 22px 26px;border-radius:22px;text-align:center;overflow:hidden;box-sizing:border-box;
+  background:radial-gradient(120% 90% at 50% 0%,#4a0d18 0%,#1a070c 55%,#06200f 100%);border:1px solid rgba(255,210,74,.5);
+  box-shadow:0 0 42px rgba(255,46,77,.28),inset 0 0 60px rgba(31,209,122,.10);color:#fff;font-family:Inter,system-ui,sans-serif;animation:ntEntra .8s cubic-bezier(.2,.9,.3,1.2) both}
+.natal-teaser>*{position:relative;z-index:1}
+.nt-luzes{position:absolute!important;top:10px;left:0;right:0;display:flex;justify-content:space-around;z-index:2!important}
+.nt-luzes span{width:9px;height:9px;border-radius:50%;background:#ff2e4d;box-shadow:0 0 8px currentColor;color:#ff2e4d;animation:ntPisca 1.4s ease-in-out infinite}
+.nt-luzes span:nth-child(3n+2){background:#ffd24a;color:#ffd24a}.nt-luzes span:nth-child(3n){background:#1fd17a;color:#1fd17a}
+.nt-neve{position:absolute!important;inset:0;z-index:0!important;pointer-events:none;overflow:hidden}
+.nt-neve i{position:absolute;top:-16px;color:#fff;opacity:.75;font-style:normal;animation:ntNeve linear infinite}
+.nt-vem{display:inline-block;margin-top:14px;padding:7px 18px;border-radius:30px;background:linear-gradient(90deg,#ff2e4d,#ffd24a);color:#1a0408;font-weight:900;letter-spacing:5px;font-size:.82em;box-shadow:0 0 18px rgba(255,46,77,.45);animation:ntPulso 1.6s ease-in-out infinite}
+.nt-icone{display:inline-block;font-size:3.3em;margin:12px 0 2px;animation:ntBalanca 2.6s ease-in-out infinite;filter:drop-shadow(0 0 14px rgba(31,209,122,.5))}
+.nt-titulo{font-weight:900;font-size:2.15em;line-height:1.04;letter-spacing:1px;background:linear-gradient(180deg,#fff7d6,#ffd24a 45%,#f5a524);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 12px rgba(255,210,74,.35))}
+.nt-sub{margin-top:9px;font-weight:800;letter-spacing:3px;font-size:.76em;color:#3ee38f}
+.nt-linha{height:2px;margin:16px auto 13px;width:70%;background:linear-gradient(90deg,transparent,#ffd24a,transparent)}
+.nt-txt{font-size:.9em;color:#eadbc6;line-height:1.5}.nt-txt b{color:#ffd24a}
+@keyframes ntNeve{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(620px) rotate(360deg)}}
+@keyframes ntPisca{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
+@keyframes ntPulso{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes ntBalanca{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+@keyframes ntEntra{0%{opacity:0;transform:scale(.85) translateY(14px)}100%{opacity:1;transform:none}}
+@media(max-width:600px){.nt-titulo{font-size:1.7em}.natal-teaser{padding:28px 16px 22px}}
+@media(prefers-reduced-motion:reduce){.natal-teaser,.natal-teaser *{animation:none!important}}
+</style>
 </head>
 <body>
 
@@ -7731,7 +7792,7 @@ document.addEventListener('keydown', e => {
    'desligado'      = só o ranking real
    ========================================================= */
 const DESTAQUE = {
-    modo: 'rotativo',
+    modo: 'apresentacao',   // 🎄 26/11: resultado escondido + card "Vem aí Natal dos Campeões" (volte para 'rotativo' depois)
     segundosDestaque: 8,          // quanto tempo a foto fica na tela
     intervaloSegundos: 25,        // modo 'rotativo': tempo do ranking entre uma foto e outra
     intervaloSegundosPodio: 20,   // modo 'rotativo-podio': tempo do pódio entre uma foto e outra
@@ -7753,7 +7814,11 @@ const MES_DESTAQUE_TXT = (() => {
 
 function escDest(t) { return String(t == null ? '' : t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
+function htmlTeaserNatal() {
+    return `<div class="natal-teaser"><div class="nt-neve"><i style="left:4%;animation-duration:7s;animation-delay:-1s;font-size:12px">❄</i><i style="left:13%;animation-duration:9s;animation-delay:-4s;font-size:9px">❄</i><i style="left:22%;animation-duration:6s;animation-delay:-2s;font-size:14px">❄</i><i style="left:31%;animation-duration:8s;animation-delay:-6s;font-size:10px">❄</i><i style="left:42%;animation-duration:10s;animation-delay:-3s;font-size:12px">❄</i><i style="left:51%;animation-duration:7s;animation-delay:-5s;font-size:9px">❄</i><i style="left:60%;animation-duration:9s;animation-delay:-1s;font-size:15px">❄</i><i style="left:69%;animation-duration:6s;animation-delay:-4s;font-size:10px">❄</i><i style="left:78%;animation-duration:8s;animation-delay:-2s;font-size:13px">❄</i><i style="left:87%;animation-duration:10s;animation-delay:-6s;font-size:9px">❄</i><i style="left:95%;animation-duration:7s;animation-delay:-3s;font-size:12px">❄</i><i style="left:36%;animation-duration:11s;animation-delay:-7s;font-size:8px">❄</i></div><div class="nt-luzes"><span style="animation-delay:0.00s"></span><span style="animation-delay:0.15s"></span><span style="animation-delay:0.30s"></span><span style="animation-delay:0.45s"></span><span style="animation-delay:0.60s"></span><span style="animation-delay:0.75s"></span><span style="animation-delay:0.90s"></span><span style="animation-delay:1.05s"></span><span style="animation-delay:1.20s"></span><span style="animation-delay:1.35s"></span><span style="animation-delay:1.50s"></span><span style="animation-delay:1.65s"></span><span style="animation-delay:1.80s"></span><span style="animation-delay:1.95s"></span></div><div class="nt-vem">VEM AÍ</div><div><span class="nt-icone">🎄</span></div><div class="nt-titulo">NATAL DOS<br>CAMPEÕES</div><div class="nt-sub">EDIÇÃO ESPECIAL · DEZEMBRO 2026</div><div class="nt-linha"></div><div class="nt-txt">O resultado da <b>Black das Black's</b> será revelado na premiação.<br>Prepare-se: em dezembro começa uma nova disputa! 🎁</div></div>`;
+}
 function htmlCardDestaque() {
+    if (DESTAQUE.modo === 'apresentacao') return htmlTeaserNatal();
     return `
         <div class="destaque-global">
             <div class="dg-titulo">${escDest(DESTAQUE.titulo || ('SÊNIOR DESTAQUE - ' + MES_DESTAQUE_TXT))}</div>
@@ -7911,6 +7976,16 @@ atualizarBannerApb();
 
 // se os dados (cache) já foram desenhados antes deste script carregar
 try { if (typeof listaCompletaSeniores !== 'undefined' && listaCompletaSeniores.length) destaqueAposRender(); } catch (e) {}
+<\/script>
+<script>
+/* 🎄 Suspense pré-Natal: quem não é admin só vê as abas sem resultado */
+(function(){
+  var LIVRES = ['ranking','premios'];
+  function bloqueado(n){ try { return (DESTAQUE.modo === 'apresentacao' && !adminBlack()) && LIVRES.indexOf(n) < 0; } catch(e) { return false; } }
+  function aviso(){ try { showToast('🎄 Resultados guardados para a premiação. Vem aí o Natal dos Campeões!', 'info', 4200); } catch(e){} }
+  var t = window.trocarAba; if (typeof t === 'function') window.trocarAba = function(n){ if (bloqueado(n)) { aviso(); return; } return t.apply(this, arguments); };
+  var x = window.executarTrocaAba; if (typeof x === 'function') window.executarTrocaAba = function(n){ if (bloqueado(n)) { aviso(); return; } return x.apply(this, arguments); };
+})();
 <\/script>
 </body>
 </html>
@@ -8672,6 +8747,30 @@ try { if (typeof listaCompletaSeniores !== 'undefined' && listaCompletaSeniores.
         .destaque-podio .destaque-global .dg-nome + .dg-filial { font-size: clamp(.9rem, 3.8cqw, 1.4rem); }
         @media (max-width: 768px) { .destaque-podio .destaque-global .dg-foto.dg-foto-q { width: min(100%, 230px); } .destaque-podio .destaque-global { padding: 16px 14px 14px; } }
     </style>
+<style id="natal-teaser-css">
+.natal-teaser{position:relative;width:100%;max-width:520px;margin:auto;padding:30px 22px 26px;border-radius:22px;text-align:center;overflow:hidden;box-sizing:border-box;
+  background:radial-gradient(120% 90% at 50% 0%,#4a0d18 0%,#1a070c 55%,#06200f 100%);border:1px solid rgba(255,210,74,.5);
+  box-shadow:0 0 42px rgba(255,46,77,.28),inset 0 0 60px rgba(31,209,122,.10);color:#fff;font-family:Inter,system-ui,sans-serif;animation:ntEntra .8s cubic-bezier(.2,.9,.3,1.2) both}
+.natal-teaser>*{position:relative;z-index:1}
+.nt-luzes{position:absolute!important;top:10px;left:0;right:0;display:flex;justify-content:space-around;z-index:2!important}
+.nt-luzes span{width:9px;height:9px;border-radius:50%;background:#ff2e4d;box-shadow:0 0 8px currentColor;color:#ff2e4d;animation:ntPisca 1.4s ease-in-out infinite}
+.nt-luzes span:nth-child(3n+2){background:#ffd24a;color:#ffd24a}.nt-luzes span:nth-child(3n){background:#1fd17a;color:#1fd17a}
+.nt-neve{position:absolute!important;inset:0;z-index:0!important;pointer-events:none;overflow:hidden}
+.nt-neve i{position:absolute;top:-16px;color:#fff;opacity:.75;font-style:normal;animation:ntNeve linear infinite}
+.nt-vem{display:inline-block;margin-top:14px;padding:7px 18px;border-radius:30px;background:linear-gradient(90deg,#ff2e4d,#ffd24a);color:#1a0408;font-weight:900;letter-spacing:5px;font-size:.82em;box-shadow:0 0 18px rgba(255,46,77,.45);animation:ntPulso 1.6s ease-in-out infinite}
+.nt-icone{display:inline-block;font-size:3.3em;margin:12px 0 2px;animation:ntBalanca 2.6s ease-in-out infinite;filter:drop-shadow(0 0 14px rgba(31,209,122,.5))}
+.nt-titulo{font-weight:900;font-size:2.15em;line-height:1.04;letter-spacing:1px;background:linear-gradient(180deg,#fff7d6,#ffd24a 45%,#f5a524);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 0 12px rgba(255,210,74,.35))}
+.nt-sub{margin-top:9px;font-weight:800;letter-spacing:3px;font-size:.76em;color:#3ee38f}
+.nt-linha{height:2px;margin:16px auto 13px;width:70%;background:linear-gradient(90deg,transparent,#ffd24a,transparent)}
+.nt-txt{font-size:.9em;color:#eadbc6;line-height:1.5}.nt-txt b{color:#ffd24a}
+@keyframes ntNeve{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(620px) rotate(360deg)}}
+@keyframes ntPisca{0%,100%{opacity:.35;transform:scale(.8)}50%{opacity:1;transform:scale(1.15)}}
+@keyframes ntPulso{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+@keyframes ntBalanca{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+@keyframes ntEntra{0%{opacity:0;transform:scale(.85) translateY(14px)}100%{opacity:1;transform:none}}
+@media(max-width:600px){.nt-titulo{font-size:1.7em}.natal-teaser{padding:28px 16px 22px}}
+@media(prefers-reduced-motion:reduce){.natal-teaser,.natal-teaser *{animation:none!important}}
+</style>
 </head>
 <body>
 <div id="toast-box"></div>
@@ -9053,7 +9152,7 @@ const DESTAQUE = {
     // 'rotativo'     = ranking real; o card do VENDEDOR DESTAQUE (mês anterior) aparece ao abrir
     //                  e volta a cada X segundos no lugar da lista (precisa preencher nome/filial/foto)
     // 'desligado'    = só o ranking real
-    modo: 'desligado',
+    modo: 'apresentacao',   // 🎄 26/11: resultado escondido + card "Vem aí Natal dos Campeões" (volte para 'desligado' depois)
     segundosDestaque: 8,          // quanto tempo o card fica na tela
     intervaloSegundos: 25,        // tempo do ranking entre um card e outro
     titulo: '',                   // vazio = automático: "VENDEDOR DESTAQUE - <mês anterior> <ano>"
@@ -9076,7 +9175,11 @@ const MES_DESTAQUE_TXT = (() => {
     return `${M[m]} ${a}`;
 })();
 function temCardDestaque() { return !!(DESTAQUE.nome || DESTAQUE.foto); }
+function htmlTeaserNatal() {
+    return `<div class="natal-teaser"><div class="nt-neve"><i style="left:4%;animation-duration:7s;animation-delay:-1s;font-size:12px">❄</i><i style="left:13%;animation-duration:9s;animation-delay:-4s;font-size:9px">❄</i><i style="left:22%;animation-duration:6s;animation-delay:-2s;font-size:14px">❄</i><i style="left:31%;animation-duration:8s;animation-delay:-6s;font-size:10px">❄</i><i style="left:42%;animation-duration:10s;animation-delay:-3s;font-size:12px">❄</i><i style="left:51%;animation-duration:7s;animation-delay:-5s;font-size:9px">❄</i><i style="left:60%;animation-duration:9s;animation-delay:-1s;font-size:15px">❄</i><i style="left:69%;animation-duration:6s;animation-delay:-4s;font-size:10px">❄</i><i style="left:78%;animation-duration:8s;animation-delay:-2s;font-size:13px">❄</i><i style="left:87%;animation-duration:10s;animation-delay:-6s;font-size:9px">❄</i><i style="left:95%;animation-duration:7s;animation-delay:-3s;font-size:12px">❄</i><i style="left:36%;animation-duration:11s;animation-delay:-7s;font-size:8px">❄</i></div><div class="nt-luzes"><span style="animation-delay:0.00s"></span><span style="animation-delay:0.15s"></span><span style="animation-delay:0.30s"></span><span style="animation-delay:0.45s"></span><span style="animation-delay:0.60s"></span><span style="animation-delay:0.75s"></span><span style="animation-delay:0.90s"></span><span style="animation-delay:1.05s"></span><span style="animation-delay:1.20s"></span><span style="animation-delay:1.35s"></span><span style="animation-delay:1.50s"></span><span style="animation-delay:1.65s"></span><span style="animation-delay:1.80s"></span><span style="animation-delay:1.95s"></span></div><div class="nt-vem">VEM AÍ</div><div><span class="nt-icone">🎄</span></div><div class="nt-titulo">NATAL DOS<br>CAMPEÕES</div><div class="nt-sub">EDIÇÃO ESPECIAL · DEZEMBRO 2026</div><div class="nt-linha"></div><div class="nt-txt">O resultado da <b>Black das Black's</b> será revelado na premiação.<br>Prepare-se: em dezembro começa uma nova disputa! 🎁</div></div>`;
+}
 function htmlCardDestaque() {
+    if (DESTAQUE.modo === 'apresentacao') return htmlTeaserNatal();
     const e = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     return `
         <div class="destaque-global">
@@ -9099,7 +9202,7 @@ function pintarSuspenseVend() {
     const bz = document.getElementById('busca-ranking'); if (bz) bz.style.display = 'none';
     const lista = document.getElementById('lista-ranking');
     lista.classList.add('modo-destaque');
-    lista.innerHTML = '<div style="width:100%">' + (temCardDestaque() ? htmlCardDestaque() : '') + '<div class="apb-nota">RESULTADO REVELADO NA PREMIAÇÃO</div></div>';
+    lista.innerHTML = '<div style="width:100%">' + htmlCardDestaque() + '</div>';
 }
 
 /* ---------- rotação card ↔ ranking ---------- */
@@ -10637,6 +10740,15 @@ document.addEventListener('keydown', e => {
 renderizarChips();
 atualizarBotaoSair();
 carregarDados();
+<\/script>
+<script>
+/* 🎄 Suspense pré-Natal: quem não é admin só vê as abas sem resultado */
+(function(){
+  var LIVRES = ['ranking','premios'];
+  function bloqueado(n){ try { return (suspenseVend()) && LIVRES.indexOf(n) < 0; } catch(e) { return false; } }
+  function aviso(){ try { showToast('🎄 Resultados guardados para a premiação. Vem aí o Natal dos Campeões!', 'info', 4200); } catch(e){} }
+  var t = window.trocarAba; if (typeof t === 'function') window.trocarAba = function(n){ if (bloqueado(n)) { aviso(); return; } return t.apply(this, arguments); };
+})();
 <\/script>
 </body>
 </html>
