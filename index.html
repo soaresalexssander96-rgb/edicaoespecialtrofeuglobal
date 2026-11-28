@@ -11206,7 +11206,8 @@ carregarDados();
         aberta = false;
         timers.forEach(clearTimeout); timers = [];
         try { confetti.reset(); } catch (e) {}
-        try { audioOuro.pause(); } catch (e) {}
+        clearInterval(fadeSenna); fadeSenna = null;
+        try { audioOuro.pause(); audioOuro.currentTime = 0; audioOuro.volume = 1; } catch (e) {}
         raiz.className = '';
         $('apb-palco').innerHTML = '';
         $('apb-blackout').classList.remove('on');
@@ -11318,6 +11319,7 @@ carregarDados();
 
     function executar(e) {
         const raizEl = raiz;
+        if (e.t !== 'fim') pararSenna();   // mudou de categoria/etapa: a música do campeão anterior para
         raizEl.classList.remove('ouro', 'tensao');
         if (e.r != null) montarRodada(e.r);
         if (e.t === 'rodada') {
@@ -11464,7 +11466,21 @@ carregarDados();
         const g = c.createGain(); g.gain.setValueAtTime(0.07, t0); g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.45);
         src.connect(f); f.connect(g); g.connect(c.destination); src.start(t0);
     }
+    // para o senna.mp3 com um fade curto (não corta seco)
+    let fadeSenna = null;
+    function pararSenna() {
+        clearInterval(fadeSenna); fadeSenna = null;
+        if (!audioOuro || audioOuro.paused) return;
+        fadeSenna = setInterval(() => {
+            try {
+                const v = audioOuro.volume - 0.1;
+                if (v <= 0.05) { clearInterval(fadeSenna); fadeSenna = null; audioOuro.pause(); audioOuro.currentTime = 0; audioOuro.volume = 1; }
+                else audioOuro.volume = v;
+            } catch (e) { clearInterval(fadeSenna); fadeSenna = null; }
+        }, 50);
+    }
     function senna() {
+        clearInterval(fadeSenna); fadeSenna = null;
         try {
             audioOuro.pause(); audioOuro.currentTime = 0; audioOuro.volume = 1;
             const p = audioOuro.play();
