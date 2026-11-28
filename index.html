@@ -26,7 +26,8 @@
   QUEM VÊ O QUÊ: veja a constante PERFIS no script do hub.
   ADMINISTRADORES: e-mails e senha ficam no Apps Script dos GERENTES (propriedades ADMIN_EMAILS e
   ADMIN_SENHA). O login de admin é conferido lá. Admin libera tudo em qualquer perfil.
-  MODO APRESENTAÇÃO: botão 🎬 na barra (só admin), em qualquer painel.
+  MODO APRESENTAÇÃO: botão 🎬 na tela de escolha de perfil (só admin) → escolhe Gerentes, Sênior ou Vendedores.
+  A apresentação abre direto, sem mostrar o painel antes; ao sair, volta para a escolha de perfil.
   SUSPENSE / ROTATIVO: constante DESTAQUE dentro de cada painel (modo 'apresentacao' | 'rotativo' | 'desligado').
   LINKS DIRETOS: index.html#gerente  #senior  #lideranca  #vendedor
   =====================================================================
@@ -174,8 +175,6 @@ button{font:inherit;color:inherit}
 #palco iframe.ativo{visibility:visible;opacity:1;z-index:1}
 
 /* Admin */
-.hb-apres{display:flex;align-items:center;gap:6px;height:38px;padding:0 14px;border-radius:30px;border:1px solid #000;cursor:pointer;font-weight:900;font-size:.78em;letter-spacing:.5px;color:#140e00;background:linear-gradient(135deg,#fff3b0,#ffd24a 45%,#b8860b);box-shadow:0 4px 18px -4px rgba(255,210,74,.7)}
-.hb-apres:hover{filter:brightness(1.08)}
 .hb-admin-wrap{position:relative}
 .hb-admin{display:flex;align-items:center;gap:5px;height:38px;padding:0 12px;border-radius:30px;cursor:pointer;font-size:.78em;color:#ffd24a;background:rgba(255,210,74,.1);border:1px solid rgba(255,210,74,.45)}
 .hb-admin b{letter-spacing:2px;font-weight:900}
@@ -192,7 +191,36 @@ button{font:inherit;color:inherit}
 .pk-link{margin-top:10px;background:none;border:0;color:#bfa762;font-weight:800;font-size:1em;cursor:pointer;padding:4px 8px;border-radius:8px}
 .pk-link:hover{color:#ffd24a;background:rgba(255,210,74,.06)}
 .pk-link.oculto{display:none}
-@media (max-width:860px){ .hb-apres b,.hb-admin b{display:none} .hb-apres,.hb-admin{padding:0 10px;height:36px} }
+@media (max-width:860px){ .hb-admin b{display:none} .hb-admin{padding:0 10px;height:36px} }
+
+/* Modo apresentação: botão no picker, menu e tela de preparo */
+.pk-admin-bts{display:inline-flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.pk-admin button.pk-apres{border:1px solid #000;color:#140e00;font-weight:900;background:linear-gradient(135deg,#fff3b0,#ffd24a 45%,#b8860b);box-shadow:0 4px 18px -4px rgba(255,210,74,.7)}
+.pk-admin button.pk-apres:hover{filter:brightness(1.08)}
+.apm-card{max-width:620px}
+.apm-card .modal-ico{font-size:1.6em}
+.apm-ops{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-bottom:4px}
+.apm-op{display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 10px;border-radius:16px;cursor:pointer;text-align:center;
+  background:color-mix(in srgb,var(--c) 8%,rgba(3,5,12,.7));border:1px solid color-mix(in srgb,var(--c) 45%,transparent);transition:transform .2s,box-shadow .2s}
+button.apm-op:hover{transform:translateY(-3px);box-shadow:0 10px 30px -8px var(--c)}
+.apm-op b{font-size:.95em;color:#fff}
+.apm-op small{color:var(--mut2);font-size:.75em;font-weight:700}
+.apm-ico{font-size:1.8em}
+.apm-dupla{cursor:default}
+.apm-sub{display:flex;flex-direction:column;gap:6px;width:100%}
+.apm-sub button{padding:7px 6px;border-radius:10px;cursor:pointer;font-weight:800;font-size:.74em;color:#fff;background:rgba(180,123,255,.14);border:1px solid rgba(180,123,255,.5)}
+.apm-sub button:hover{background:rgba(180,123,255,.3)}
+@media (max-width:560px){.apm-ops{grid-template-columns:1fr}}
+#ap-prep{position:fixed;inset:0;z-index:110;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;text-align:center;padding:20px;
+  background:radial-gradient(800px 400px at 50% 50%,rgba(255,210,74,.12),transparent 70%),#000;transition:opacity .5s}
+#ap-prep.oculto{display:none!important}
+#ap-prep.saindo{opacity:0;pointer-events:none}
+#ap-prep .ct-barra i{background:var(--gold)}
+.app-ico{font-size:3em;filter:drop-shadow(0 0 20px rgba(255,210,74,.6))}
+.app-tit{font-family:var(--font-t);font-weight:800;letter-spacing:5px;font-size:clamp(1em,3vw,1.5em);color:var(--gold)}
+.app-sub{color:var(--mut2);font-weight:700;font-size:.85em;letter-spacing:1px;min-height:1.2em;max-width:520px}
+.app-x{margin-top:10px;background:none;border:1px solid var(--line2);border-radius:20px;padding:7px 16px;color:var(--mut2);font-weight:700;cursor:pointer}
+.app-x:hover{color:#fff;border-color:#fff}
 
 /* Cortina de transição entre painéis */
 #cortina{position:absolute;inset:0;z-index:5;pointer-events:none;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;
@@ -243,7 +271,7 @@ button{font:inherit;color:inherit}
 <section id="picker" class="oculto" aria-label="Escolha o seu perfil">
   <div class="pk-topo">
     <div class="pk-marca"><i></i>BLACK DAS BLACK'S · REGIONAL CAMPO BOM</div>
-    <div class="pk-admin" id="pk-admin">👑 <span>Administrador <b id="pk-admin-email"></b> · todos os acessos liberados</span><button type="button" id="pk-admin-sair">Sair do admin</button></div>
+    <div class="pk-admin" id="pk-admin">👑 <span>Administrador <b id="pk-admin-email"></b> · todos os acessos liberados</span><span class="pk-admin-bts"><button type="button" class="pk-apres" id="pk-apres">🎬 Modo Apresentação</button><button type="button" id="pk-admin-sair">Sair do admin</button></span></div>
     <h1>Quem está <em>entrando</em>?</h1>
     <p>"Regional com o maior número de lojas entregando meta na Diretoria Virtual"</p>
   </div>
@@ -277,7 +305,6 @@ button{font:inherit;color:inherit}
     <div class="hb-marca">BLACK <span>DAS</span> BLACK'S</div>
     <nav id="hb-nav" aria-label="Painéis"><span class="hb-pill" id="hb-pill"></span></nav>
     <div class="hb-acoes">
-      <button class="hb-apres oculto" id="hb-apres" type="button" title="Modo Apresentação deste painel (só admin)"><span>🎬</span><b>Apresentar</b></button>
       <div class="hb-admin-wrap oculto" id="hb-admin-wrap">
         <button class="hb-admin" id="hb-admin" type="button" title="Administrador">👑<b>ADMIN</b></button>
         <div class="hb-admin-menu" id="hb-admin-menu"><small>Logado como</small><b id="hb-admin-email"></b><button type="button" id="hb-admin-sair">Sair do modo admin</button></div>
@@ -288,6 +315,29 @@ button{font:inherit;color:inherit}
   <main id="palco">
     <div id="cortina"><div class="ct-ico" id="ct-ico"></div><div class="ct-txt" id="ct-txt"></div><div class="ct-sub" id="ct-sub"></div><div class="ct-barra"><i></i></div></div>
   </main>
+</div>
+
+<!-- ================= MODO APRESENTAÇÃO (admin) ================= -->
+<div class="modal" id="ap-menu" role="dialog" aria-modal="true" aria-labelledby="apm-tit">
+  <div class="modal-card apm-card">
+    <div class="modal-ico">🎬</div>
+    <h2 id="apm-tit">MODO APRESENTAÇÃO</h2>
+    <p>Quem você quer apresentar? A apresentação abre direto, sem mostrar o resultado antes.</p>
+    <div class="apm-ops">
+      <button type="button" class="apm-op" data-painel="gerente" style="--c:#ffd24a"><span class="apm-ico">🏆</span><b>Gerentes</b><small>Troféu Global</small></button>
+      <button type="button" class="apm-op" data-painel="senior" style="--c:#ff3d7f"><span class="apm-ico">⭐</span><b>Ass. Sênior</b><small>NSL Sênior</small></button>
+      <div class="apm-op apm-dupla" style="--c:#b47bff"><span class="apm-ico">🛍️</span><b>Vendedores</b>
+        <span class="apm-sub"><button type="button" data-painel="vendedor" data-tipo="pct">🎯 Melhor %</button><button type="button" data-painel="vendedor" data-tipo="fat">💰 Faturamento</button></span></div>
+    </div>
+    <button class="btn-link" id="apm-fechar" type="button">Cancelar</button>
+  </div>
+</div>
+<div id="ap-prep" class="oculto" aria-live="polite">
+  <div class="app-ico">🎬</div>
+  <div class="app-tit" id="app-tit">PREPARANDO A APRESENTAÇÃO</div>
+  <div class="app-sub" id="app-sub">Carregando os dados mais recentes...</div>
+  <div class="ct-barra"><i></i></div>
+  <button type="button" class="app-x" id="app-x">Cancelar</button>
 </div>
 
 <div class="toast-hub" id="toast-hub"></div>
@@ -568,14 +618,14 @@ function mostrarPicker(animar = true) {
 function esconderPicker() { $('picker').classList.add('oculto'); $('picker').classList.remove('ativo', 'escolhendo'); }
 
 document.addEventListener('keydown', e => {
-    if ($('picker').classList.contains('oculto') || $('login-g').classList.contains('show')) return;
+    if ($('picker').classList.contains('oculto') || $('login-g').classList.contains('show') || $('ap-menu').classList.contains('show') || apresentando) return;
     const n = parseInt(e.key, 10);
     if (n >= 1 && n <= ORDEM_PERFIS.length) escolherPerfil(ORDEM_PERFIS[n - 1]);
 });
 
 let escolhendo = false;
 async function escolherPerfil(id) {
-    if (escolhendo || !PERFIS[id]) return;
+    if (escolhendo || apresentando || !PERFIS[id]) return;
     const p = PERFIS[id];
     if (p.exigeLogin && !gerenteLogado()) { somTick(0, 523); abrirLoginGerente(); return; }
     escolhendo = true;
@@ -655,40 +705,148 @@ function atualizarAdminUI() {
     $('pk-admin-email').textContent = adm ? HubAdmin.email() : '';
     $('pk-admin-entrar').classList.toggle('oculto', adm);
     $('hb-admin-wrap').classList.toggle('oculto', !adm);
-    $('hb-apres').classList.toggle('oculto', !adm);
+    if (!adm) $('ap-menu').classList.remove('show');
     $('hb-admin-email').textContent = adm ? HubAdmin.email() : '';
     if (!adm) $('hb-admin-menu').classList.remove('show');
 }
 $('hb-admin').addEventListener('click', e => { e.stopPropagation(); $('hb-admin-menu').classList.toggle('show'); });
 document.addEventListener('click', e => { if (!e.target.closest('#hb-admin-wrap')) $('hb-admin-menu').classList.remove('show'); });
 $('hb-admin-sair').addEventListener('click', () => { HubAdmin.sair(); toast('Modo administrador encerrado.'); });
-$('hb-apres').addEventListener('click', () => {
-    const f = painelAtual && frames[painelAtual];
-    const w = f && f.el.contentWindow;
-    if (w && typeof w.abrirApresentacao === 'function') {
-        // tela cheia pelo próprio clique (o navegador só deixa com um clique da pessoa)
-        if (!document.fullscreenElement && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
-        try { w.abrirApresentacao(); } catch (e) { toast('Não consegui abrir a apresentação.'); }
-    }
-    else toast('Aguarde o painel terminar de carregar.');
+/* ===================== 🎬 MODO APRESENTAÇÃO (admin, a partir da escolha de perfil) =====================
+   O painel abre escondido atrás de uma tela preta, espera os dados atualizados e já entra direto na
+   apresentação (o resultado nunca aparece antes). Ao sair, o painel é destruído (para tudo, inclusive
+   o senna.mp3) e volta para a escolha de perfil. */
+const APRES = {
+    gerente:  { titulo: 'TROFÉU GLOBAL · GERENTES',
+                pronto: "isAdmin() && listaCompletaFiliais.length >= 3",
+                aberta: "document.getElementById('apresentacao').classList.contains('show')",
+                abrir:  () => 'abrirApresentacao()' },
+    senior:   { titulo: 'NSL SÊNIOR',
+                pronto: "adminBlack() && listaCompletaSeniores.length >= 3 && !!window.ApresentacaoBlack",
+                aberta: "!!(window.ApresentacaoBlack && ApresentacaoBlack.aberta())",
+                abrir:  () => 'abrirApresentacao()' },
+    vendedor: { titulo: 'VENDEDORES',
+                pronto: "adminVend() && dadosOk && VENDEDORES.length > 0 && !!window.ApresentacaoBlack",
+                aberta: "!!(window.ApresentacaoBlack && ApresentacaoBlack.aberta())",
+                abrir:  tipo => `abrirApresentacao('${tipo === 'fat' ? 'fat' : 'pct'}')` }
+};
+const SINCRONIZADO = "!/sincroniz|conectando/i.test((document.getElementById('texto-carregando') || {}).innerText || '')";
+let apresentando = null;   // { painel, tipo, id }
+let apresSeq = 0;
+
+function avaliarNoPainel(w, expr) { try { return !!w.eval(expr); } catch (e) { return false; } }
+function abrirMenuApresentacao() {
+    if (!HubAdmin.ativo()) return toast('Modo Apresentação disponível só para administradores.');
+    somTick(0, 660);
+    $('ap-menu').classList.add('show');
+}
+function fecharMenuApresentacao() { $('ap-menu').classList.remove('show'); }
+$('pk-apres').addEventListener('click', abrirMenuApresentacao);
+$('apm-fechar').addEventListener('click', fecharMenuApresentacao);
+$('ap-menu').addEventListener('click', e => {
+    if (e.target === $('ap-menu')) return fecharMenuApresentacao();
+    const b = e.target.closest('[data-painel]');
+    if (b && b.tagName === 'BUTTON') iniciarApresentacao(b.dataset.painel, b.dataset.tipo);
 });
-// O painel avisa quando a apresentação abre/fecha: a barra some e o painel ocupa a tela toda
+$('app-x').addEventListener('click', () => encerrarApresentacao());
+
+async function iniciarApresentacao(painel, tipo) {
+    const cfg = APRES[painel]; if (!cfg || apresentando) return;
+    if (!HubAdmin.ativo()) return toast('Modo Apresentação disponível só para administradores.');
+    // tela cheia pelo próprio clique (o navegador só deixa com um clique da pessoa)
+    if (!document.fullscreenElement && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
+    fecharMenuApresentacao();
+    const id = ++apresSeq;
+    apresentando = { painel, tipo, id };
+    const prep = $('ap-prep');
+    $('app-tit').textContent = cfg.titulo + (painel === 'vendedor' ? (tipo === 'fat' ? ' · FATURAMENTO' : ' · MELHOR %') : '');
+    $('app-sub').textContent = 'Carregando os dados mais recentes...';
+    prep.classList.remove('oculto', 'saindo');
+    somBraam(0, 55, 1.4, .5);
+
+    // o painel monta por baixo da tela preta, sem barra e no tamanho real
+    destruirFrames(); perfilAtual = null; painelAtual = null; trocando = false;
+    const hub = $('hub');
+    hub.classList.add('apresentando'); hub.classList.remove('oculto');
+    $('cortina').className = '';
+    ajustarEscala();
+    const f = criarFrame(painel);
+    f.el.classList.add('ativo');
+    await f.pronto;
+
+    const t0 = Date.now();
+    let avisouCache = false;
+    while (apresentando && apresentando.id === id) {
+        const w = frames[painel] && frames[painel].el.contentWindow;
+        const passou = Date.now() - t0;
+        if (w && avaliarNoPainel(w, cfg.pronto)) {
+            const sinc = avaliarNoPainel(w, SINCRONIZADO);
+            if (sinc || passou > 25000) {
+                if (!sinc && !avisouCache) { avisouCache = true; $('app-sub').textContent = 'A planilha está demorando: usando os últimos dados salvos.'; await esperar(1500); if (!apresentando || apresentando.id !== id) return; }
+                try { w.eval(cfg.abrir(tipo)); } catch (e) {}
+                if (avaliarNoPainel(w, cfg.aberta)) {
+                    hub.classList.add('apresentando');
+                    esconderPicker();
+                    // a apresentação tem um "fade-in": a tela preta só sai depois, para o painel não aparecer
+                    setTimeout(() => { if (apresentando && apresentando.id === id) prep.classList.add('saindo'); }, 900);
+                    setTimeout(() => { if (prep.classList.contains('saindo')) prep.classList.add('oculto'); }, 1450);
+                    try { frames[painel].el.contentWindow.focus(); } catch (e) {}
+                    return;
+                }
+            } else $('app-sub').textContent = 'Sincronizando com a planilha...';
+        }
+        if (passou > 60000) { $('app-sub').textContent = '⚠️ Não consegui carregar os dados. Confira a internet e tente de novo.'; return; }
+        await esperar(500);
+    }
+}
+
+// Para todos os sons (senna.mp3, prata, bronze, efeitos em <audio>) de um painel
+function pararSonsDoFrame(f) {
+    try { const w = f.el.contentWindow; if (w && w.__pararSons) w.__pararSons(); } catch (e) {}
+}
+function encerrarApresentacao() {
+    if (!apresentando) return;
+    apresentando = null;
+    $('ap-prep').classList.add('oculto'); $('ap-prep').classList.remove('saindo');
+    // esconde o painel na hora (o resultado não aparece) e corta o som já;
+    // o quadro é destruído logo depois, fora do clique que veio de dentro dele
+    $('hub').classList.add('oculto'); $('hub').classList.remove('apresentando');
+    Object.values(frames).forEach(pararSonsDoFrame);
+    setTimeout(() => { if (!apresentando) destruirFrames(); }, 0);
+    if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
+    mostrarPicker();
+}
+
+// O painel avisa quando a apresentação abre/fecha
 window.__hubApresentacao = on => {
-    $('hub').classList.toggle('apresentando', !!on);
+    if (!on && apresentando) { encerrarApresentacao(); return; }   // saiu da apresentação: volta para a escolha de perfil
+    $('hub').classList.toggle('apresentando', !!on || !!apresentando);
     if (!on && document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
     ajustarEscala();
 };
+// ESC com o foco fora do painel (ex.: depois de sair da tela cheia) também encerra
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && $('ap-menu').classList.contains('show')) { fecharMenuApresentacao(); return; }
+    if (e.key !== 'Escape' || !apresentando) return;
+    const w = frames[apresentando.painel] && frames[apresentando.painel].el.contentWindow;
+    let fechou = false;
+    try { if (w && w.ApresentacaoBlack && w.ApresentacaoBlack.aberta()) { w.ApresentacaoBlack.fechar(); fechou = true; } } catch (err) {}
+    try { if (!fechou && w && typeof w.fecharApresentacao === 'function') { w.fecharApresentacao(); fechou = true; } } catch (err) {}
+    if (apresentando) encerrarApresentacao();
+});
 
 // Admin entrou ou saiu (pelo hub ou de dentro de um painel)
 function aoMudarAdmin(origem, entrou) {
     atualizarAdminUI();
+    if (apresentando && !entrou) { encerrarApresentacao(); return; }
+    if (apresentando) return;
     if (!perfilAtual) { if (!$('picker').classList.contains('oculto')) montarCards(); return; }
     const p = PERFIS[perfilAtual];
     if (p.exigeLogin && !gerenteLogado()) { voltarAoPicker(); return; }
     const lista = paineisDoPerfil(perfilAtual), ids = lista.map(x => x[0]);
     // os outros painéis recarregam já com o acesso novo; o painel onde a pessoa clicou fica como está
     Object.keys(frames).forEach(k => {
-        if (!ids.includes(k) || !origem || frames[k].el.contentWindow !== origem) { frames[k].el.remove(); delete frames[k]; }
+        if (!ids.includes(k) || !origem || frames[k].el.contentWindow !== origem) { pararSonsDoFrame(frames[k]); frames[k].el.remove(); delete frames[k]; }
     });
     montarNav(lista);
     const alvo = ids.includes(painelAtual) ? painelAtual : ids[0];
@@ -744,6 +902,17 @@ const INTRO_DEPOIS = `<script>(function(){
   }).observe(ib, { attributes: true, attributeFilter: ['class'] });
 })();<\/script>`;
 
+// Controle de som: guarda todo áudio que o painel tocar (inclusive new Audio('senna.mp3'),
+// que não fica no HTML) para o hub conseguir parar tudo ao trocar de painel ou de apresentação.
+const CONTROLE_SOM = `<script>(function(){
+  var tocados = new Set(), play = HTMLMediaElement.prototype.play;
+  HTMLMediaElement.prototype.play = function(){ tocados.add(this); return play.apply(this, arguments); };
+  window.__pararSons = function(){
+    tocados.forEach(function(m){ try { m.pause(); m.currentTime = 0; } catch(e){} });
+    try { document.querySelectorAll('audio,video').forEach(function(m){ try { m.pause(); } catch(e){} }); } catch(e){}
+  };
+  window.addEventListener('pagehide', window.__pararSons);
+})();<\/script>`;
 // Ponte: cada painel enxerga o admin central como window.BlackAdmin
 const PONTE_ADMIN = `<script>(function(){ try { var H = parent.__hubAdmin; if (!H) return;
   window.BlackAdmin = { ativo: function(){ return H.ativo(); }, email: function(){ return H.email(); }, token: function(){ return H.token(); },
@@ -764,7 +933,7 @@ function montarHtml(painelId) {
     const p = PAINEIS[painelId];
     let html = fonte(p.fonte);
     const ponte = `<script>window.__HUB={painel:'${painelId}',modo:'${p.modo || 'completo'}'};<\/script>`
-        + (p.modo === 'intro' ? INTRO_ANTES : PONTE_ADMIN + (p.modo === 'podio' ? PODIO_ANTES : ''));
+        + CONTROLE_SOM + (p.modo === 'intro' ? INTRO_ANTES : PONTE_ADMIN + (p.modo === 'podio' ? PODIO_ANTES : ''));
     html = html.replace(/<head(\s[^>]*)?>/i, m => m + ponte);
     let depois = p.modo === 'podio' ? PODIO_DEPOIS : p.modo === 'intro' ? INTRO_DEPOIS : '';
     if (!p.modo && p.fonte === 'gerente') depois += GERENTE_DEPOIS;
@@ -794,7 +963,7 @@ function criarFrame(painelId) {
     $('palco').appendChild(el);
     return (frames[painelId] = { el, pronto });
 }
-function destruirFrames() { Object.keys(frames).forEach(k => { frames[k].el.remove(); delete frames[k]; }); }
+function destruirFrames() { Object.keys(frames).forEach(k => { pararSonsDoFrame(frames[k]); frames[k].el.remove(); delete frames[k]; }); }
 function marcarCarregando(painelId, on) { const b = $('hb-nav').querySelector(`[data-painel="${painelId}"]`); if (b) b.classList.toggle('carregando', on); }
 
 /* ===================== HUB ===================== */
@@ -875,6 +1044,7 @@ async function irPara(painelId, primeira = false) {
 
     if (!reduzMovimento) { somWhoosh(0, .45); cort.className = 'entra'; await esperar(primeira ? 300 : 420); }
     cort.className = 'fica';
+    if (painelAtual && frames[painelAtual]) pararSonsDoFrame(frames[painelAtual]);
     const f = criarFrame(painelId);
     Object.values(frames).forEach(x => x.el.classList.toggle('ativo', x === f));
     painelAtual = painelId;
@@ -887,6 +1057,7 @@ async function irPara(painelId, primeira = false) {
 }
 
 function voltarAoPicker() {
+    if (apresentando) { encerrarApresentacao(); return; }
     destruirFrames(); perfilAtual = null; painelAtual = null; trocando = false;
     $('hub').classList.add('oculto'); $('hub').classList.remove('apresentando');
     try { history.replaceState(null, '', location.pathname + location.search); } catch (e) {}
@@ -896,7 +1067,7 @@ $('hb-perfil').addEventListener('click', () => { somWhoosh(0, .4); voltarAoPicke
 $('hb-reload').addEventListener('click', () => {
     if (!painelAtual || !frames[painelAtual]) return;
     const b = $('hb-reload'); b.classList.remove('girando'); void b.offsetWidth; b.classList.add('girando');
-    const pid = painelAtual; frames[pid].el.remove(); delete frames[pid]; painelAtual = null;
+    const pid = painelAtual; pararSonsDoFrame(frames[pid]); frames[pid].el.remove(); delete frames[pid]; painelAtual = null;
     irPara(pid, true);
 });
 
@@ -2130,8 +2301,7 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
         <div class="destaque-podio" id="destaque-podio" onclick="pularDestaque()" title="Toque para ver o pódio"></div>
         <div class="secao-lista-wrapper">
             <div id="banner-suspense-admin" class="banner-suspense-admin" data-html2canvas-ignore="true">
-                <span>🔒 <b>Suspense ativo</b> — só você vê o resultado.</span>
-                <button class="btn-top10 btn-apresentar" onclick="abrirApresentacao()">🎬 Apresentar</button>
+                <span>🔒 <b>Suspense ativo</b> — só você vê o resultado. Para apresentar: 🎬 na tela de escolha de perfil.</span>
             </div>
             <input type="text" id="busca-ranking" class="busca-ranking" placeholder="🔍 Pesquisar filial, cidade ou gerente..." onkeyup="filtrarSelecao('ranking')" data-html2canvas-ignore="true">
             <div class="secao-lista" id="lista-filiais">
@@ -2255,7 +2425,6 @@ if (document.readyState === 'loading') document.addEventListener('DOMContentLoad
         <div id="tela-selecao-simul" class="tela-selecao" style="display:none;">
             <div style="display:flex;justify-content:center;margin-bottom:10px;gap:15px;flex-wrap:wrap;">
                 <button class="btn-voltar btn-logout" id="btn-logout-admin" onclick="deslogarSimulador()">Sair do Modo Admin</button>
-                <button class="btn-top10 btn-apresentar" onclick="abrirApresentacao()">🎬 Modo Apresentação</button>
                 <button class="btn-top10" onclick="abrirTelaComparativo()">⚖️ Comparativo de Lojas</button>
             </div>
             <div class="placeholder-compacto">
@@ -5543,8 +5712,7 @@ setTimeout(atualizarBannerSuspense, 0);
         <div class="destaque-podio" id="destaque-podio" onclick="pularDestaque()" title="Toque para ver o pódio"></div>
         <div class="secao-lista-wrapper">
             <div id="apb-banner" class="apb-banner" data-html2canvas-ignore="true">
-                <span>🔒 <b>Suspense ativo</b> — só você vê o resultado.</span>
-                <button class="apb-btn" onclick="abrirApresentacao()">🎬 Apresentar</button>
+                <span>🔒 <b>Suspense ativo</b> — só você vê o resultado. Para apresentar: 🎬 na tela de escolha de perfil.</span>
             </div>
             <input type="text" id="busca-ranking" class="busca-ranking" placeholder="🔍 Pesquisar filial ou cidade..." onkeyup="filtrarSelecao('ranking')" data-html2canvas-ignore="true">
             <div class="secao-lista" id="lista-selecao-ranking">
@@ -8909,8 +9077,7 @@ try { if (typeof listaCompletaSeniores !== 'undefined' && listaCompletaSeniores.
 
         <div class="secao-lista-wrapper">
             <div id="apb-banner" class="apb-banner" data-html2canvas-ignore="true">
-                <span>🔒 <b>Suspense ativo</b> — só você vê o resultado.</span>
-                <button class="apb-btn" onclick="abrirApresentacao()">🎬 Apresentar</button>
+                <span>🔒 <b>Suspense ativo</b> — só você vê o resultado. Para apresentar: 🎬 na tela de escolha de perfil.</span>
             </div>
             <div class="chips-metrica" id="chips-metrica" data-html2canvas-ignore="true"></div>
             <input type="text" id="busca-ranking" class="busca-ranking" placeholder="🔍 Pesquisar vendedor, filial ou cidade..." oninput="renderizarRanking()" data-html2canvas-ignore="true">
